@@ -43,3 +43,8 @@ double sphere::get_blue()
 {
 	return color.get_z();
 }
+
+bool sphere::is_intersected()
+{
+	return false;
+}

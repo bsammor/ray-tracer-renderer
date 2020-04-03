@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{56CF8B1D-4AF0-42A2-A06F-6C9AA726A247}</ProjectGuid>
+    <ProjectGuid>{02D9E92B-3443-4FD4-B362-E70A5343A4B3}</ProjectGuid>
     <RootNamespace>raytracer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -141,6 +141,7 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="light.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Plane.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="sphere.cpp" />
     <ClCompile Include="vec3.cpp" />
@@ -148,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="light.h" />
+    <ClInclude Include="Plane.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="vec3.h" />

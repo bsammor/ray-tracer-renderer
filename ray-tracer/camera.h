@@ -11,6 +11,6 @@ private:
 public:
 	camera();
 	camera(vec3 origin, vec3 target, vec3 up_guide, double fov, double ratio);
-	ray create_camera_ray(double x, double y);
+	ray* create_camera_ray(double x, double y);
 };
 

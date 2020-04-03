@@ -15,5 +15,6 @@ public:
 	double get_red();
 	double get_green();
 	double get_blue();
+	bool is_intersected();
 };
 

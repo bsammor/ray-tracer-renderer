@@ -3,7 +3,7 @@ using namespace std;
 
 vec3::vec3()
 {
-	x = 0, y = 0, z = 0;
+	x = 0.0, y = 0.0, z = 0.0;
 }
 
 vec3::vec3(double x, double y, double z)
@@ -28,7 +28,7 @@ double vec3::get_z()
 
 double vec3::magnitude()
 {
-	return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+	return sqrt(pow(x, 2.0) + pow(y, 2.0) + pow(z, 2.0));
 }
 
 vec3 vec3::normalize()
