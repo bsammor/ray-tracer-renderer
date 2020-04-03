@@ -2,16 +2,16 @@
 
 sphere::sphere()
 {
-	position = vec3();
+	origin = vec3();
 	radius = 0.0;
 	color = vec3();
 }
 
-sphere::sphere(vec3 pos, double r, vec3 rgb)
+sphere::sphere(vec3 origin, double radius, vec3 color)
 {
-	position = pos;
-	radius = 0.0;
-	color = rgb;
+	this->origin = origin;
+	this->radius = radius;
+	this->color = color;
 }
 
 double sphere::get_radius()
@@ -19,9 +19,9 @@ double sphere::get_radius()
 	return radius;
 }
 
-vec3 sphere::get_position()
+vec3 sphere::get_origin()
 {
-	return position;
+	return origin;
 }
 
 vec3 sphere::get_color()

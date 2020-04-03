@@ -4,9 +4,10 @@
 class light
 {
 private:
-	vec3 position;
+	vec3 origin;
 public:
 	light();
-	light(vec3 pos);
+	light(vec3 origin);
+	vec3 get_origin();
 };
-
+	

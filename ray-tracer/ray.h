@@ -7,7 +7,7 @@ private:
 	vec3 origin, direction;
 public:
 	ray();
-	ray(vec3 x, vec3 y);
+	ray(vec3 origin, vec3 direction);
 	vec3 get_origin();
 	vec3 get_direction();
 };

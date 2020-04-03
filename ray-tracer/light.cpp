@@ -2,10 +2,15 @@
 
 light::light()
 {
-	position = vec3();
+	origin = vec3();
 }
 
-light::light(vec3 pos)
+light::light(vec3 origin)
 {
-	position = pos;
+	this->origin = origin;
+}
+
+vec3 light::get_origin()
+{
+	return origin;
 }

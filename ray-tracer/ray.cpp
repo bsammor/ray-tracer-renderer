@@ -6,10 +6,10 @@ ray::ray()
 	direction = vec3();
 }
 
-ray::ray(vec3 x, vec3 y)
+ray::ray(vec3 origin, vec3 direction)
 {
-	origin = x;
-	direction = y;
+	this->origin = origin;
+	this->direction = direction;
 }
 
 vec3 ray::get_origin()

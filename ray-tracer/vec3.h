@@ -15,10 +15,10 @@ public:
 	double magnitude();
 	vec3 normalize();
 
-	static double dot_product(vec3* v1, vec3* v2);
-	static vec3 cross_product(vec3* v1, vec3* v2);
-	static vec3 add(vec3* v1, vec3* v2);
-	static vec3 subtract(vec3* v1, vec3* v2);
-	static vec3 scalar_mul(vec3* v1, double scalar);
+	static double dot_product(vec3 v1, vec3 v2);
+	static vec3 cross_product(vec3 v1, vec3 v2);
+	static vec3 add(vec3 v1, vec3 v2);
+	static vec3 subtract(vec3 v1, vec3 v2);
+	static vec3 scalar_mul(vec3 v1, double scalar);
 };
 
