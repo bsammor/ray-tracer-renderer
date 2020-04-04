@@ -1,20 +1,20 @@
-#include "Plane.h"
+#include "plane.h"
 #define RAY_T_MIN 0.0001f
 #define RAY_T_MAX 1.0e30f
 
-Plane::Plane()
+plane::plane()
 {
 	position = vec3();
 	direction = vec3();
 }
 
-Plane::Plane(vec3 position, vec3 direction)
+plane::plane(vec3 position, vec3 direction)
 {
 	this->position = position;
 	this->direction = direction;
 }
 
-bool Plane::is_intersected(ray ray)
+bool plane::is_intersected(ray ray)
 {
 	// First, check if we intersect
 	double dDotN = vec3::dot_product(ray.get_direction(), direction);
