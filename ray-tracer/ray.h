@@ -1,14 +1,21 @@
 #pragma once
 #include "vec3.h"
+#define RAY_T_MIN 0.0001f
+#define RAY_T_MAX 1.0e30f
 
-class ray
+class Ray
 {
 private:
-	vec3 origin, direction;
+	Vec3 origin, direction;
+	double intersection = RAY_T_MAX;
 public:
-	ray();
-	ray(vec3 origin, vec3 direction);
-	vec3 get_origin();
-	vec3 get_direction();
+	Ray();
+	Ray(Vec3 origin, Vec3 direction);
+	Vec3 get_origin();
+	void set_intersection(double point);
+	double get_intersection();
+	Vec3 get_direction();
 };
+
+
 

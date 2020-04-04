@@ -1,27 +1,29 @@
 #include "camera.h"
+#include <iostream>
+using namespace std;
 
-camera::camera()
+Camera::Camera()
 {
-	origin = vec3(), forward = vec3(), right = vec3(), up = vec3();
+	origin = Vec3(), forward = Vec3(), right = Vec3(), up = Vec3();
 	world_height = 0.0, world_width = 0.0;
 }
 
-camera::camera(vec3 origin, vec3 target, vec3 up_guide, double fov, double ratio)
+Camera::Camera(Vec3 origin, Vec3 target, Vec3 up_guide, double fov, double ratio)
 {
 	this->origin = origin;
-	forward = vec3::subtract(target, origin).normalize();
-	right = vec3::cross_product(forward, up_guide).normalize();
-	up = vec3::cross_product(forward, right);
+	forward = Vec3::subtract(target, origin).normalize();
+	right = Vec3::cross_product(forward, up_guide).normalize();
+	up = Vec3::cross_product(right, forward);
 	
 	world_height = tan(fov);
 	world_width = ratio * world_height;
 }
 
-ray* camera::create_camera_ray(double x, double y)
+Ray* Camera::create_camera_ray(double x, double y)
 {
-	vec3 result1 = vec3::scalar_mul(vec3::scalar_mul(right, world_width), x);
-	vec3 result2 = vec3::scalar_mul(vec3::scalar_mul(up, world_height), y);
-	vec3 ray_dir = vec3::add(vec3::add(forward, result1), result2);
-	ray *lol = new ray(origin, ray_dir.normalize());
+	Vec3 result1 = Vec3::scalar_mul(Vec3::scalar_mul(right, world_width), x);
+	Vec3 result2 = Vec3::scalar_mul(Vec3::scalar_mul(up, world_height), y);
+	Vec3 ray_dir = Vec3::add(Vec3::add(forward, result1), result2);
+	Ray *lol = new Ray(this->origin, ray_dir.normalize());
 	return lol;
 }

@@ -1,32 +1,36 @@
 #include "plane.h"
+#include <iostream>
 #define RAY_T_MIN 0.0001f
 #define RAY_T_MAX 1.0e30f
+using namespace std;
 
-plane::plane()
+Plane::Plane()
 {
-	position = vec3();
-	direction = vec3();
+	position = Vec3();
+	direction = Vec3();
 }
 
-plane::plane(vec3 position, vec3 direction)
+Plane::Plane(Vec3 position, Vec3 direction)
 {
 	this->position = position;
 	this->direction = direction;
 }
 
-bool plane::is_intersected(ray ray)
+
+bool Plane::intersected(Ray ray)
 {
 	// First, check if we intersect
-	double dDotN = vec3::dot_product(ray.get_direction(), direction);
+	double dDotN = Vec3::dot_product(ray.get_direction(), this->direction);
 
-	if (dDotN == 0.0f)
+	if (dDotN == 0.0)
 	{
 		// We just assume the ray is not embedded in the plane
 		return false;
 	}
 
 	// Find point of intersection
-	float t = vec3::dot_product(vec3::subtract(position, ray.get_origin()), direction) / dDotN;
+	double t = Vec3::dot_product(Vec3::subtract(this->position, ray.get_origin()), this->direction)
+		/ dDotN;
 
 	if (t <= RAY_T_MIN || t >= RAY_T_MAX)
 	{
@@ -34,5 +38,11 @@ bool plane::is_intersected(ray ray)
 		return false;
 	}
 
-	return true;
+	if (t < ray.get_intersection())
+	{
+		ray.set_intersection(t);
+		return true;
+	}
+
+	return false;
 }

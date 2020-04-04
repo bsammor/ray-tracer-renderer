@@ -1,20 +1,20 @@
 #pragma once
-#include "vec3.h"
+#include "ray.h"
 
-class sphere
+class Sphere
 {
 private:
 	double radius;
-	vec3 origin, color;
+	Vec3 origin, color;
 public:
-	sphere();
-	sphere(vec3 origin, double radius, vec3 color);
+	Sphere();
+	Sphere(Vec3 origin, double radius, Vec3 color);
 	double get_radius();
-	vec3 get_origin();
-	vec3 get_color();
+	Vec3 get_origin();
+	Vec3 get_color();
 	double get_red();
 	double get_green();
 	double get_blue();
-	bool is_intersected();
+	bool intersected(Ray ray);
 };
 

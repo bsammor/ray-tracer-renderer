@@ -1,23 +1,33 @@
 #include "ray.h"
 
-ray::ray()
+Ray::Ray()
 {
-	origin = vec3();
-	direction = vec3();
+	origin = Vec3();
+	direction = Vec3();
 }
 
-ray::ray(vec3 origin, vec3 direction)
+Ray::Ray(Vec3 origin, Vec3 direction)
 {
 	this->origin = origin;
 	this->direction = direction;
 }
 
-vec3 ray::get_origin()
+Vec3 Ray::get_origin()
 {
 	return origin;
 }
 
-vec3 ray::get_direction()
+void Ray::set_intersection(double point)
+{
+	this->intersection = point;
+}
+
+double Ray::get_intersection()
+{
+	return this->intersection;
+}
+
+Vec3 Ray::get_direction()
 {
 	return direction;
 }

@@ -1,16 +1,16 @@
 #include "light.h"
 
-light::light()
+Light::Light()
 {
-	origin = vec3();
+	origin = Vec3();
 }
 
-light::light(vec3 origin)
+Light::Light(Vec3 origin)
 {
 	this->origin = origin;
 }
 
-vec3 light::get_origin()
+Vec3 Light::get_origin()
 {
 	return origin;
 }

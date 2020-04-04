@@ -3,14 +3,16 @@
 #include <math.h>
 #include "ray.h"
 
-class plane
+class Plane
 {
 private:
-	vec3 position, direction;
+	Vec3 position, direction;
 public:
-	plane();
-	plane(vec3 position, vec3 direction);
-	bool is_intersected(ray ray);
+	Plane();
+	Plane(Vec3 position, Vec3 direction);
+	bool intersected(Ray ray);
 };
+
+
 
 

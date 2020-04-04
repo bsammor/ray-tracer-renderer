@@ -1,13 +1,13 @@
 #pragma once
 #include "vec3.h"
 
-class light
+class Light
 {
 private:
-	vec3 origin;
+	Vec3 origin;
 public:
-	light();
-	light(vec3 origin);
-	vec3 get_origin();
+	Light();
+	Light(Vec3 origin);
+	Vec3 get_origin();
 };
 	

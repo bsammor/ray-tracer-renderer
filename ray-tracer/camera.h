@@ -3,14 +3,14 @@
 #include <math.h>
 #include "ray.h"
 
-class camera
+class Camera
 {
 private:
-	vec3 origin, forward, right, up;
+	Vec3 origin, forward, right, up;
 	double world_height, world_width;
 public:
-	camera();
-	camera(vec3 origin, vec3 target, vec3 up_guide, double fov, double ratio);
-	ray* create_camera_ray(double x, double y);
+	Camera();
+	Camera(Vec3 origin, Vec3 target, Vec3 up_guide, double fov, double ratio);
+	Ray* create_camera_ray(double x, double y);
 };
 

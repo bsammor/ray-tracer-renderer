@@ -16,33 +16,47 @@ using namespace std;
 
 int main() {
 	int width = 640, height = 480;
-	vec3* image = new vec3[width * height];
-	camera camera(vec3(0.0, 0.0, -1.0), vec3(0.0, 1.0, 0.0), vec3(), (10 * PI / 180), (float)width/(float)height);
-	plane plane;
+	Vec3* image = new Vec3[width * height];
 
+	Camera camera(Vec3(0.0, 1.0, -1.0), Vec3(0.0, 1.0, 0.0), Vec3(0.0, 1.0, 0.0), (50 * PI / 180.0), (float)width/(float)height);
+	Plane plane(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0));
+	Sphere sphere(Vec3(0.0, 1.0, 3.0), 1.0, Vec3(255.0, 0.0, 0.0));
 
-	for (int i = 0; i < width; ++i) {
-		for (int j = 0; j < height; ++j) {
-			double xx = (2 * ((x + 0.5) * invWidth) - 1) * angle * aspectratio;
-			double yy = (1 - 2 * ((y + 0.5) * invHeight)) * angle;
-			//TODO: try the raytracer.cpp functions here to render a plane or sphere.
-			vec3 raydir = vec3::normalize(vec3(xx, yy, -1));
-			ray *ray = camera.create_camera_ray(new_x, new_y);
-			if (plane.is_intersected(*ray)) {
-				image[i * j] = vec3(0.0,255.0,0.0);
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+
+			double new_x = (2.0 * i) / width - 1.0;
+			double new_y = (-2.0 * j) / height + 1.0;
+			bool done = false;
+
+			Ray *ray = camera.create_camera_ray(new_x, new_y);
+			Vec3* pixel = image + (i + j * width);
+
+			if (plane.intersected(*ray)) {;
+				*pixel = Vec3(0.0, 0.0, 255.0);
+				done = true;
 			}
-			else {
-				image[i * j] = vec3();
+			if (sphere.intersected(*ray)) {
+				*pixel = sphere.get_color();
+				done = true;
 			}
-
+			/*if (sphere1.intersected(*ray)) {
+				*pixel = sphere1.get_color();
+				done = true;
+			}
+			if (sphere2.intersected(*ray)) {
+				*pixel = sphere2.get_color();
+				done = true;
+			}*/
+			if (done == false) {
+				*pixel = Vec3(255.0, 255.0, 255.0);
+			}
 		}
-
-	
 	}   
 	
 	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
 	ofs << "P6\n" << width << " " << height << "\n255\n";
-	for (unsigned i = 0; i < width * height; ++i) {
+	for (int i = 0; i < width * height ; ++i) {
 		ofs << (unsigned char)(std::min(double(1), image[i].get_x()) * 255) <<
 			(unsigned char)(std::min(double(1), image[i].get_y()) * 255) <<
 			(unsigned char)(std::min(double(1), image[i].get_z()) * 255);
