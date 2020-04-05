@@ -1,20 +1,16 @@
 #pragma once
 #include "ray.h"
+#include "object.h"
 
-class Sphere
+class Sphere : public Object
 {
 private:
 	double radius;
-	Vec3 origin, color;
 public:
 	Sphere();
 	Sphere(Vec3 origin, double radius, Vec3 color);
+	virtual ~Sphere() {}
 	double get_radius();
-	Vec3 get_origin();
-	Vec3 get_color();
-	double get_red();
-	double get_green();
-	double get_blue();
-	bool intersected(Ray ray);
+	virtual bool intersected(Ray ray);
 };
 

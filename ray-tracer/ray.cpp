@@ -19,12 +19,12 @@ Vec3 Ray::get_origin()
 
 void Ray::set_intersection(double point)
 {
-	this->intersection = point;
+	intersection = point;
 }
 
 double Ray::get_intersection()
 {
-	return this->intersection;
+	return intersection;
 }
 
 Vec3 Ray::get_direction()
