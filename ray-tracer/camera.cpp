@@ -12,9 +12,9 @@ Camera::Camera(Vec3 origin, Vec3 look_at, Vec3 up_guide, double fov, double rati
 {
 	this->origin = origin;
 	forward = (look_at - origin).normalize();
-	right = (forward.cross_product(up_guide).normalize()) * -1;
-	up = right.cross_product(forward) * -1;
-	
+	right = ((forward * up_guide).normalize());
+	up = right * forward;
+
 	world_height = tan(fov);
 	world_width = ratio * world_height;
 }
@@ -24,6 +24,6 @@ Ray* Camera::create_camera_ray(double x, double y)
 	Vec3 result1 = right * world_width * x;
 	Vec3 result2 = up * world_height * y;
 	Vec3 ray_dir = forward + result1 + result2;
-	Ray *lol = new Ray(this->origin, ray_dir.normalize());
+	Ray *lol = new Ray(this->origin, ray_dir.normalize(), MINIMUM, INFINITY);
 	return lol;
 }

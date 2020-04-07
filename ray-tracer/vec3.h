@@ -13,13 +13,14 @@ public:
 	double get_y();
 	double get_z();
 	double magnitude();
+	double squared_magnitude();
 	Vec3 normalize();
 
 	double dot_product(Vec3 v1);
-	Vec3 cross_product(Vec3 v1);
-
+	Vec3 operator*(Vec3 v1);
 	Vec3 operator+(Vec3 v1);
 	Vec3 operator-(Vec3 v1);
 	Vec3 operator*(double scalar);
+	Vec3 operator/(double scalar);
 };
 

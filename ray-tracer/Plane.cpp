@@ -7,22 +7,22 @@ using namespace std;
 Plane::Plane()
 {
 	origin = Vec3();
-	direction = Vec3();
+	normal = Vec3();
 	color = Vec3();
 }
 
-Plane::Plane(Vec3 origin, Vec3 direction, Vec3 color)
+Plane::Plane(Vec3 origin, Vec3 direction, Vec3 color, Vec3 albedo)
 {
 	this->origin = origin;
-	this->direction = direction;
+	this->normal = direction;
 	this->color = color;
 }
 
 
-bool Plane::intersected(Ray ray)
+bool Plane::intersected(Ray *ray)
 {
 	// First, check if we intersect
-	double dDotN = ray.get_direction().dot_product(direction);
+	double dDotN = ray->get_direction().dot_product(normal);
 
 	if (dDotN == 0.0)
 	{
@@ -31,20 +31,26 @@ bool Plane::intersected(Ray ray)
 	}
 
 	// Find point of intersection
-	double t = (origin - ray.get_origin()).dot_product(direction)
+	double t = (origin - ray->get_origin()).dot_product(normal)
 		/ dDotN;
 
-	if (t <= MINIMUM || t >= INFINITY)
+	if (t <= ray->get_tnear() || t >= ray->get_tmax())
 	{
 		// Outside relevant range
 		return false;
 	}
 
-	if (t < ray.get_intersection())
-	{
-		ray.set_intersection(t);
-		return true;
-	}
+	ray->set_tmax(t);
 
-	return false;
+	return true;
+}
+
+Ray* Plane::create_shadow_ray(Vec3 point, Light light)
+{
+	return new Ray();
+}
+
+Vec3 Plane::get_normal()
+{
+	return normal;
 }
