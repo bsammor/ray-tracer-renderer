@@ -1,8 +1,5 @@
 #pragma once
 #include "vec3.h"
-#include <cmath>
-#define MINIMUM 0.0001f
-#define PI 3.14159265358979323846
 
 class Ray
 {

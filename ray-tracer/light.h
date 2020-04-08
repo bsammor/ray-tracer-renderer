@@ -1,19 +1,22 @@
 #pragma once
 #include "light.h"
+#include "color.h"
 #include "ray.h"
+#include <cmath>
 
 class Light
 {
 private:
-	Vec3 origin, color;
+	Vec3 origin;
+	Color color;
 	double intensity;
 public:
 	Light();
-	Light(Vec3 origin, Vec3 color, double intensity, double radius);
+	Light(Vec3 origin, Color color, double intensity);
 	Vec3 get_origin();
-	Vec3 get_color();
+	Color get_color();
+	bool intersected(Ray* ray, Color* pixel, double radius_squared);
 	double get_intensity();
-	bool intersected(Ray *ray);
 	Vec3 get_direction(Vec3 P);
 };
 	

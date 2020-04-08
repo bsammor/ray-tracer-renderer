@@ -1,6 +1,4 @@
 #include "camera.h"
-#include <iostream>
-using namespace std;
 
 Camera::Camera()
 {
@@ -24,6 +22,6 @@ Ray* Camera::create_camera_ray(double x, double y)
 	Vec3 result1 = right * world_width * x;
 	Vec3 result2 = up * world_height * y;
 	Vec3 ray_dir = forward + result1 + result2;
-	Ray *lol = new Ray(this->origin, ray_dir.normalize(), MINIMUM, INFINITY);
-	return lol;
+	Ray *ray = new Ray(this->origin, ray_dir.normalize(), MINIMUM, INFINITY);
+	return ray;
 }

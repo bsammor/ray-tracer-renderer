@@ -1,27 +1,17 @@
 #include "sphere.h"
-#include "ray.h"
-#include "vec3.h"
-#include <algorithm>
-#include <iostream>
-#include <cmath>
-using namespace std;
-#define MINIMUM 0.0001f
-#define PI 3.14159265358979323846
 
 Sphere::Sphere()
 {
 	origin = Vec3();
 	radius = 0.0;
-	color = Vec3();
-	albedo = Vec3();
+	color = Color();
 }
 
-Sphere::Sphere(Vec3 origin, double radius, Vec3 color, Vec3 albedo)
+Sphere::Sphere(Vec3 origin, double radius, Color color)
 {
 	this->origin = origin;
 	this->radius = radius;
 	this->color = color;
-	this->albedo = albedo;
 }
 
 double Sphere::get_radius()
@@ -54,10 +44,15 @@ bool Sphere::intersected(Ray *ray)
 	return false;
 }
 
-Ray* Sphere::create_shadow_ray(Vec3 point, Light light)
+Ray* Sphere::create_shadow_ray(Ray* camera_ray, Light light, Color *light_intensity)
 {
-	Vec3 normal = point - origin;
-	Vec3 light_dir = light.get_direction(point);
-	Ray* ray = new Ray(point + normal * 1e-4, light_dir, MINIMUM, INFINITY);
+	Vec3 point = camera_ray->get_intersection_point();
+	Vec3 normal = (point - origin).normalize();
+	Vec3 light_dir = point - light.get_origin();
+	double shadow_bias = 1e-4;
+	double radius_squared = light_dir.dot_product(light_dir);
+	double dist = sqrtl(radius_squared);
+
+	Ray* ray = new Ray(point + normal, light_dir.normalize(), MINIMUM, dist);
 	return ray;
 }

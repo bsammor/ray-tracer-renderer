@@ -1,6 +1,4 @@
 #pragma once
-#include "vec3.h"
-#include <math.h>
 #include "ray.h"
 
 class Camera

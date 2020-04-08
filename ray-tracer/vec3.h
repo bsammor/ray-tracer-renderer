@@ -1,6 +1,6 @@
 #pragma once
 #include <math.h>
-#include <iostream>
+#define MINIMUM 0.0001f
 
 class Vec3
 {

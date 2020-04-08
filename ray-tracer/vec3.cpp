@@ -1,5 +1,4 @@
 #include "vec3.h"
-using namespace std;
 
 Vec3::Vec3()
 {
