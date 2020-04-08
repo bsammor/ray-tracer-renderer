@@ -27,6 +27,7 @@ int main() {
 	int width = 640	, height = 480;
 	Color* image = new Color[width * height];
 	std::vector<Object*> scene;
+	std::vector<Light> lights;
 
 	Camera camera(Vec3(0.0, 0.0, 10.0), Vec3(0.0, 0.0, -1.0), Vec3(0.0, 1.0, 0.0), (20 * PI / 180.0), (float)width/(float)height);
 	Light light(Vec3(0.0, 0.0, 5.0), Color(1.0, 1.0, 1.0), 800);
@@ -54,26 +55,30 @@ int main() {
 			*pixel = Color(0.0, 0.0, 0.0);
 
 			for (int i = 0; i < scene.size(); i++) {
-				if (scene[i]->intersected(camera_ray)) {
-					if (dynamic_cast<Sphere*>(scene[i])) {
+				if (object->intersected(camera_ray)) {
+					if (dynamic_cast<Sphere*>(object)) {
+						
+						for (Light light : lights) {
+							//info required to create shadowray
+							Vec3 point = camera_ray->get_intersection_point();
+							Vec3 normal = (point - object->get_origin()).normalize();
+							Vec3 light_dir = point - light.get_origin();
+							double shadow_bias = 1e-4;
 
-						Color* light_intensity = Color(0.0, 0.0, 0.0);
-						Ray* shadow_ray = sphere.create_shadow_ray(camera_ray, light, light_intensity);
-
-						Vec3 light_dir = light.get_origin() - camera_ray->get_intersection_point();
-						double radius_squared = light_dir.dot_product(light_dir);
-
-						if (light.intersected(shadow_ray, pixel, radius_squared)) {
-							Vec3 normal = (camera_ray->get_intersection_point() - scene[i]->get_origin()).normalize();
-							Vec3 light_dir = light.get_direction(camera_ray->get_intersection_point());
+							//info required to calculate max distance
 							double r2 = light_dir.dot_product(light_dir);
+							double distance = sqrtl(r2);
 							light_dir = light_dir.normalize();
 
-							*pixel = scene[i]->get_color() / PI * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir));
+							Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir * -1, MINIMUM, distance);
+
+							if (!light.intersected(shadow_ray, pixel, r2)) {
+								*pixel = object->get_color() / PI * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir * -1));
+							}
 						}
 					}
-					else if (dynamic_cast<Plane*>(scene[i])) {
-						*pixel = scene[i]->get_color();
+					else if (dynamic_cast<Plane*>(object)) {
+						*pixel = object->get_color();
 					}
 				}
 			}

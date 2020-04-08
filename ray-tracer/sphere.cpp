@@ -44,15 +44,13 @@ bool Sphere::intersected(Ray *ray)
 	return false;
 }
 
-Ray* Sphere::create_shadow_ray(Ray* camera_ray, Light light, Color *light_intensity)
+Ray* Sphere::create_shadow_ray(Ray* camera_ray, Light light)
 {
 	Vec3 point = camera_ray->get_intersection_point();
 	Vec3 normal = (point - origin).normalize();
-	Vec3 light_dir = point - light.get_origin();
+	Vec3 light_dir = light.get_direction(point);
 	double shadow_bias = 1e-4;
-	double radius_squared = light_dir.dot_product(light_dir);
-	double dist = sqrtl(radius_squared);
 
-	Ray* ray = new Ray(point + normal, light_dir.normalize(), MINIMUM, dist);
+	Ray* ray = new Ray(point + normal * shadow_bias, light_dir.normalize(), MINIMUM, INFINITY);
 	return ray;
 }
