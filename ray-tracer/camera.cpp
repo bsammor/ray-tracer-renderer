@@ -10,8 +10,8 @@ Camera::Camera(Vec3 origin, Vec3 look_at, Vec3 up_guide, double fov, double rati
 {
 	this->origin = origin;
 	forward = (look_at - origin).normalize();
-	right = ((forward * up_guide).normalize());
-	up = right * forward;
+	right = (forward.cross_product(up_guide)).normalize();
+	up = right.cross_product(forward);
 
 	world_height = tan(fov);
 	world_width = ratio * world_height;

@@ -46,11 +46,19 @@ double Vec3::dot_product(Vec3 v1)
 	return (x * v1.get_x()) + (y * v1.get_y()) + (z * v1.get_z());
 }
 
-Vec3 Vec3::operator*(Vec3  v1)
+Vec3 Vec3::cross_product(Vec3 v1)
 {
 	double new_x = (y * v1.get_z()) - (z * v1.get_y());
 	double new_y = (z * v1.get_x()) - (x * v1.get_z());
 	double new_z = (x * v1.get_y()) - (y * v1.get_x());
+	return Vec3(new_x, new_y, new_z);
+}
+
+Vec3 Vec3::operator*(Vec3  v1)
+{
+	double new_x = x * v1.get_x();
+	double new_y = y * v1.get_y();
+	double new_z = z * v1.get_z();
 	return Vec3(new_x, new_y, new_z);
 }
 
