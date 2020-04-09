@@ -31,6 +31,16 @@ double Ray::get_tmax()
 	return tmax;
 }
 
+void Ray::set_index(int i)
+{
+	obj_index = i;
+}
+
+int Ray::get_index()
+{
+	return obj_index;
+}
+
 Vec3 Ray::get_direction()
 {
 	return direction;

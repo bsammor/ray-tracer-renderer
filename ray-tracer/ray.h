@@ -6,6 +6,7 @@ class Ray
 private:
 	Vec3 origin, direction;
 	double tnear, tmax;
+	int obj_index = -1;
 public:
 	Ray();
 	Ray(Vec3 origin, Vec3 direction, double tnear, double tmax);
@@ -15,6 +16,8 @@ public:
 	Vec3 get_intersection_point();
 	double get_tnear();
 	double get_tmax();
+	void set_index(int i);
+	int get_index();
 };
 
 

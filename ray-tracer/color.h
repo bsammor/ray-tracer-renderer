@@ -15,5 +15,6 @@ public:
 	Color operator*(double scalar);
 	Color operator/(double scalar);
 	Color operator+=(Color c1);
+	Color operator+(Color c1);
 };
 

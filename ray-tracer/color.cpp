@@ -46,7 +46,12 @@ Color Color::operator/(double scalar)
 
 Color Color::operator+=(Color c1)
 {
-	r + c1.get_r(), g + c1.get_g(), b = c1.get_b();
+	r + c1.get_r(), g + c1.get_g(), b + c1.get_b();
 
 	return *this;
+}
+
+Color Color::operator+(Color c1)
+{
+	return Color(r + c1.get_r(), g + c1.get_g(), b + c1.get_b());
 }

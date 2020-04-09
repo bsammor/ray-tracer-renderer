@@ -24,64 +24,72 @@ void save_image(double width, double height, Color* image) {
 }
 
 int main() {
-	int width = 640	, height = 480;
+	int width = 640, height = 480;
 	Color* image = new Color[width * height];
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
 
-	Camera camera(Vec3(0.0, 0.0, 10.0), Vec3(0.0, 0.0, -1.0), Vec3(0.0, 1.0, 0.0), (20 * PI / 180.0), (float)width/(float)height);
-	Light light(Vec3(0.0, 0.0, 5.0), Color(1.0, 1.0, 1.0), 800);
+	Camera camera(Vec3(0.0, 5.0, 10), Vec3(0.0, 0.0, -1.0), Vec3(0.0, 1.0, .0), (20 * PI / 180.0), (float)width/(float)height);
+	Light light(Vec3(0.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
+	Light light1(Vec3(7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
+	Light light2(Vec3(-7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 
-	Plane plane(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Color(0.3, 0.3, 0.3));
-	Sphere sphere(Vec3(0.0, 0.0, 0.0), 1, Color(1.0, 0.4, 0.7));
-	Sphere sphere1(Vec3(3.0, 1.0, 0.0), 1, Color(0.004, 0.47, 0.114));
-	Sphere sphere2(Vec3(-3.0, 1.0, 0.0), 1, Color(1.0, 0.5, 0.0));
-	//scene.push_back(&plane);
+	Plane plane(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Color(0.03, 0.77, 0.85), diffuse);
+	Sphere sphere(Vec3(0.0, 1.0, 0.0), 1, Color(1.0, 0.4, 0.7), specular);
+	Sphere sphere1(Vec3(-3.0, 1.0, 0.0), 1, Color(0.004, 0.47, 0.114), diffuse);
+	Sphere sphere2(Vec3(3.0, 1.0, 0.0), 1, Color(1.0, 0.5, 0.0), diffuse);
+	scene.push_back(&plane);
 	//scene.push_back(&sphere1);
 	//scene.push_back(&sphere2);
 	scene.push_back(&sphere);
-
-
-
+	lights.push_back(light);
+	//lights.push_back(light1);
+	//lights.push_back(light2);
 
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
-
 			double new_x = (2.0 * i) / width - 1.0;
 			double new_y = (-2.0 * j) / height + 1.0;
 
 			Ray *camera_ray = camera.create_camera_ray(new_x, new_y);
-			Color* pixel = image + (i + j * width);
-			*pixel = Color(0.0, 0.0, 0.0);
+			Color *pixel = image + (i + j * width);
+			bool intersected_once = false;
 
-			for (int i = 0; i < scene.size(); i++) {
-				if (object->intersected(camera_ray)) {
-					if (dynamic_cast<Sphere*>(object)) {
-						
-						for (Light light : lights) {
-							//info required to create shadowray
-							Vec3 point = camera_ray->get_intersection_point();
-							Vec3 normal = (point - object->get_origin()).normalize();
-							Vec3 light_dir = point - light.get_origin();
-							double shadow_bias = 1e-4;
+			for (int i = 0; i < scene.size(); i++)
+				scene[i]->intersected(camera_ray, i);
 
-							//info required to calculate max distance
-							double r2 = light_dir.dot_product(light_dir);
-							double distance = sqrtl(r2);
-							light_dir = light_dir.normalize();
+			if (camera_ray->get_index() != -1) {
+				int obj_index = camera_ray->get_index();
+				Vec3 point = camera_ray->get_intersection_point();
+				Vec3 normal = scene[obj_index]->get_normal(point);
+				double shadow_bias = 1e-4;
+				for (Light light : lights) {
 
-							Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir * -1, MINIMUM, distance);
+					Color color;
+					Vec3 light_dir = light.get_direction(point);
+					double r2 = light_dir.dot_product(light_dir);
+					double distance = sqrtl(r2);
+					light_dir = light_dir.normalize();
 
-							if (!light.intersected(shadow_ray, pixel, r2)) {
-								*pixel = object->get_color() / PI * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir * -1));
-							}
+					Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance);
+					bool covered = false;
+					for (int j = 0; j < scene.size(); j++) {
+						if (j != i && scene[j]->intersected(shadow_ray, j)) {
+							covered = true;
+							break;
 						}
 					}
-					else if (dynamic_cast<Plane*>(object)) {
-						*pixel = object->get_color();
+					if (!covered) {
+						color = scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir));
 					}
+					else {
+						color = Color();
+					}
+					*pixel = *pixel + color;
 				}
 			}
+			else
+				*pixel = Color(0.0, 0.0, 0.0);
 		}
 	}   
 
