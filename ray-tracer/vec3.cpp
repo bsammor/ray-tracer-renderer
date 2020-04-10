@@ -62,6 +62,22 @@ Vec3 Vec3::operator*(Vec3  v1)
 	return Vec3(new_x, new_y, new_z);
 }
 
+Vec3 Vec3::operator*=(double scalar)
+{
+	x *= scalar;
+	y *= scalar;
+	z *= scalar;
+	return *this;
+}
+
+Vec3 Vec3::operator*=(Vec3 v1)
+{
+	x *= v1.get_x();
+	y *= v1.get_y();
+	z *= v1.get_z();
+	return *this;
+}
+
 Vec3 Vec3::operator+(Vec3 v1)
 {
 	double new_x = x + v1.get_x();
@@ -70,12 +86,28 @@ Vec3 Vec3::operator+(Vec3 v1)
 	return Vec3(new_x, new_y, new_z);
 }
 
+Vec3 Vec3::operator+=(Vec3 v1)
+{
+	x += v1.get_x();
+	y += v1.get_y();
+	z += v1.get_z();
+	return *this;
+}
+
 Vec3 Vec3::operator-(Vec3 v1)
 {
 	double new_x = x - v1.get_x();
 	double new_y = y - v1.get_y();
 	double new_z = z - v1.get_z();
 	return Vec3(new_x, new_y, new_z);
+}
+
+Vec3 Vec3::operator-=(Vec3 v1)
+{
+	x -= v1.get_x();
+	y -= v1.get_y();
+	z -= v1.get_z();
+	return *this;
 }
 
 Vec3 Vec3::operator*(double scalar)
@@ -92,4 +124,28 @@ Vec3 Vec3::operator/(double scalar)
 	double new_y = y / scalar;
 	double new_z = z / scalar;
 	return Vec3(new_x, new_y, new_z);
+}
+
+Vec3 Vec3::operator/(Vec3 v1)
+{
+	double new_x = x / v1.get_x();
+	double new_y = y / v1.get_y();
+	double new_z = z / v1.get_z();
+	return Vec3(new_x, new_y, new_z);
+}
+
+Vec3 Vec3::operator/=(double scalar)
+{
+	x /= scalar;
+	y /= scalar;
+	z /= scalar;
+	return *this;
+}
+
+Vec3 Vec3::operator/=(Vec3 v1)
+{
+	x /= v1.get_x();
+	y /= v1.get_y();
+	z /= v1.get_z();
+	return *this;
 }

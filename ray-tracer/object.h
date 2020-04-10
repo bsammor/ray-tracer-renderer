@@ -11,7 +11,7 @@ protected:
 	Vec3 origin;
 	Color color;
 	Material material;
-	double refractive_index = 0;
+	double ior = 0;
 
 public:
 	virtual ~Object() {}
@@ -27,10 +27,12 @@ public:
 	Material get_material() {
 		return material;
 	}
-	void set_refractive_index(double x)
+	void set_ior(double x)
 	{
-		refractive_index = x;
+		ior = x;
 	}
-
+	double get_ior() {
+		return ior;
+	}
 };
 

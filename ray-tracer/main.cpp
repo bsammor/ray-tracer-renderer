@@ -33,6 +33,45 @@ Ray* create_reflection_ray(Ray *camera_ray, Light light, Object* obj)
 	return new Ray(point, direction.normalize(), MINIMUM, INFINITY);
 }
 
+double clamp(const double& lo, const double& hi, const double& v)
+{
+	return std::max(lo, std::min(hi, v));
+}
+
+Vec3 refract(Vec3 I, Vec3 N, double ior)
+{
+	double cosi = clamp(-1, 1, I.dot_product(N));
+	double etai = 1, etat = ior;
+	Vec3 n = N;
+	if (cosi < 0) { cosi = -cosi; }
+	else { std::swap(etai, etat); n = N * -1; }
+	double eta = etai / etat;
+	double k = 1 - eta * eta * (1 - cosi * cosi);
+	return k < 0 ? Vec3() : n * I * (eta + (eta * cosi - sqrt(k)));
+}
+
+
+double fresnel(Vec3 I, Vec3 N, double ior) {
+	double cosi = clamp(-1, 1, I.dot_product(N));
+	double etai = 1, etat = ior;
+	double kr = 0.0;
+	if (cosi > 0) { std::swap(etai, etat); }
+	// Compute sini using Snell's law
+	double sint = etai / etat * sqrt(std::max(0.0, 1 - cosi * cosi));
+	// Total internal reflection
+	if (sint >= 1) {
+		kr = 1;
+	}
+	else {
+		double cost = sqrt(std::max(0.0, 1 - sint * sint));
+		cosi = fabsf(cosi);
+		double Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+		double Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+		kr = (Rs * Rs + Rp * Rp) / 2;
+	}
+	return kr;
+}
+
 Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> scene, int depth = 0) 
 {
 	int obj_index = camera_ray->get_index();
@@ -46,7 +85,7 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 		for (Light light : lights) {
 			Vec3 light_dir = light.get_direction(point);
 			double r2 = light_dir.dot_product(light_dir);
-			double distance = sqrtl(r2);
+			double distance = sqrt(r2);
 			light_dir = light_dir.normalize();
 
 			Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance);
@@ -83,28 +122,70 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 			}
 		}
 	}
+	else if (scene[obj_index]->get_material() == refractive) {
+		if (depth < 5) {
+			for (Light light : lights) {
+				Color refraction_color = Color();
+				Color reflection_color = Color();
+
+				Vec3 dir = camera_ray->get_direction();
+				Vec3 normal = scene[obj_index]->get_normal(camera_ray->get_intersection_point());
+				Vec3 point = camera_ray->get_intersection_point();
+				double ior = scene[obj_index]->get_ior();
+				double kr = fresnel(dir, normal, ior);
+
+				bool outside = dir.dot_product(normal) < 0;
+				Vec3 bias = normal * 1e-4;
+
+				if (kr < 1) {
+					Vec3 refractionDirection = refract(dir, normal, ior).normalize();
+					Vec3 refractionRayOrig = outside ? point - bias : point + bias;
+					Ray* refraction_ray = new Ray(refractionRayOrig, refractionDirection, MINIMUM, INFINITY);
+					for (int i = 0; i < scene.size(); i++) {
+						if (i != obj_index)
+							scene[i]->intersected(refraction_ray, i);
+					}
+					if (refraction_ray->get_index() != -1) {
+						refraction_color = trace(refraction_ray, lights, scene, depth + 1);
+					}
+				}
+
+				Ray* reflection_ray = create_reflection_ray(camera_ray, light, scene[obj_index]);
+				for (int i = 0; i < scene.size(); i++) {
+					if (i != obj_index)
+						scene[i]->intersected(reflection_ray, i);
+				}
+				if (reflection_ray->get_index() != -1) {
+					reflection_color = trace(reflection_ray, lights, scene, depth + 1);
+				}
+				// mix the two
+				color = color + ( reflection_color* kr + refraction_color * (1 - kr));
+			}
+		}
+
+	}
 	return color;
 }
 
 int main() 
 {
-	int width = 1920, height = 1080;
+	int width = 640, height = 480;
 	Color* image = new Color[width * height];
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
 
-	Camera camera(Vec3(0.0, 5.0, 15), Vec3(0.0, 0.0, -1.0), Vec3(0.0, 1.0, .0), (20 * PI / 180.0), (float)width/(float)height);
+	Camera camera(Vec3(0.0, 1.0, 5.0), Vec3(0.0, 1.0, 4.0), Vec3(0.0, 2.0, 5.0), (20 * PI / 180.0), (double)width/(double)height);
 	Light light(Vec3(0.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 	Light light1(Vec3(7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 	Light light2(Vec3(-7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 
 	Plane plane(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Color(0.03, 0.77, 0.85), diffuse);
-	Sphere sphere(Vec3(0.0, 1.0, 0.0), 1, Color(1.0, 0.4, 0.7), specular);
-	Sphere sphere1(Vec3(-3.0, 1.0, 0.0), 1, Color(1.0, 1.0, 1.0), diffuse);
+	Sphere sphere(Vec3(0.0, 1.0, 0.0), 1, Color(1.0, 0.0, 0.0), diffuse);
+	Sphere sphere1(Vec3(0.0, 1.0, -2.0), 1, Color(1.0, 1.0, 1.0), diffuse);
 	Sphere sphere2(Vec3(3.0, 1.0, 0.0), 1, Color(1.0, 0.5, 0.0), diffuse);
 	scene.push_back(&plane);
-	scene.push_back(&sphere1);
-	scene.push_back(&sphere2);
+	//scene.push_back(&sphere1);
+	//scene.push_back(&sphere2);
 	scene.push_back(&sphere);
 	lights.push_back(light);
 	//lights.push_back(light2);
