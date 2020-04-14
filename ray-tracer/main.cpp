@@ -6,11 +6,73 @@
 #include "vec3.h"
 #include <stdio.h>
 #include <iostream>
+#include "triangle.h"
 #include <stdlib.h>
 #include <algorithm>
 #include <vector>
+#include "TriangleMesh.h"
+#include <cstdio> 
+#include <cstdlib> 
+#include <memory> 
+#include <vector> 
+#include <utility> 
+#include <cstdint> 
+#include <iostream> 
+#include <fstream> 
+#include <cmath> 
+#include <sstream> 
+#include <chrono> 
 #define PI 3.14159265358979323846
 
+TriangleMesh* loadPolyMeshFromFile(const char* file)
+{
+	std::ifstream ifs;
+	try { 
+		ifs.open(file);
+		if (ifs.fail()) throw;
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		uint32_t numFaces;
+		ss >> numFaces;
+		uint32_t* faceIndex(new uint32_t[numFaces]);
+		uint32_t vertsIndexArraySize = 0;
+		// reading face index array
+		for (uint32_t i = 0; i < numFaces; ++i) {
+			ss >> faceIndex[i];
+			vertsIndexArraySize += faceIndex[i];
+		}
+		uint32_t* vertsIndex(new uint32_t[vertsIndexArraySize]);
+		uint32_t vertsArraySize = 0;
+		// reading vertex index array
+		for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
+			ss >> vertsIndex[i];
+			if (vertsIndex[i] > vertsArraySize) vertsArraySize = vertsIndex[i];
+		}
+		vertsArraySize += 1;
+		// reading vertices
+		Vec3* verts(new Vec3[vertsArraySize]);
+		for (uint32_t i = 0; i < vertsArraySize; ++i) {
+			ss >> verts[i].x >> verts[i].y >> verts[i].z;
+		}
+		// reading normals
+		Vec3* normals(new Vec3[vertsIndexArraySize]);
+		for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
+			ss >> normals[i].x >> normals[i].y >> normals[i].z;
+		}
+		// reading st coordinates
+		Vec3* st(new Vec3[vertsIndexArraySize]);
+		for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
+			ss >> st[i].x >> st[i].y;
+		}
+		return new TriangleMesh(numFaces, faceIndex, vertsIndex, verts, normals, st);
+	}
+	catch (...) {
+		ifs.close();
+	}
+	ifs.close();
+
+	return nullptr;
+}
 
 void save_image(double width, double height, Color* image) 
 {
@@ -50,7 +112,6 @@ Vec3 refract(Vec3 I, Vec3 N, double ior)
 	return k < 0 ? Vec3() : n * I * (eta + (eta * cosi - sqrt(k)));
 }
 
-
 double fresnel(Vec3 I, Vec3 N, double ior) {
 	double cosi = clamp(-1, 1, I.dot_product(N));
 	double etai = 1, etat = ior;
@@ -76,6 +137,9 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 {
 	int obj_index = camera_ray->get_index();
 	Color color;
+	if (true) {
+		color = color + scene[obj_index]->get_color() * 0.2;
+	}
 	if (scene[obj_index]->get_material() == diffuse)
 	{
 		Vec3 point = camera_ray->get_intersection_point();
@@ -104,7 +168,7 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 			}
 		}
 	}
-	else if (scene[obj_index]->get_material() == specular) {
+	else if (scene[obj_index]->get_material() == reflective) {
 		if (depth < 5) {
 			for (Light light : lights) {
 				Ray* reflection_ray = create_reflection_ray(camera_ray, light, scene[obj_index]);
@@ -164,32 +228,90 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 		}
 
 	}
+	else if (scene[obj_index]->get_material() == phong) {
+		Vec3 point = camera_ray->get_intersection_point();
+		Vec3 normal = scene[obj_index]->get_normal(point);
+		Color diffuse;
+		Color specular;
+		double shadow_bias = 1e-4;
+
+		for (Light light : lights) {
+			Vec3 light_dir = light.get_direction(point);
+			double r2 = light_dir.dot_product(light_dir);
+			double distance = sqrt(r2);
+			light_dir = light_dir.normalize();
+
+			Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance);
+			bool covered = false;
+			for (int j = 0; j < scene.size(); j++) {
+				if (j != obj_index && scene[j]->intersected(shadow_ray, j)) {
+					covered = true;
+					break;
+				}
+			}
+			if (!covered) {
+				diffuse = diffuse + (scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir)));
+			}
+			else {
+				diffuse = diffuse * 0.96;
+			}
+		}
+
+		for (Light light : lights) {
+			Vec3 lightDir = light.get_origin() - camera_ray->get_intersection_point();
+			Vec3 V = camera_ray->get_direction() * -1;
+			// Blinn-Phong
+			Vec3 H = (lightDir + V).normalize();
+			double NdotH = normal.dot_product(H);
+
+			double phong = std::pow(NdotH, 1250);
+			specular =
+				light.get_color() * std::fmax(0, phong) *
+				light.get_intensity(); // sceneObject->GetSpecular();
+			// add
+			// or
+			// no?
+			specular = specular * 0.04;
+		}
+		color = color + diffuse;
+		color = color + specular;
+	}
+
 	return color;
 }
 
 int main() 
 {
+	TriangleMesh* test = loadPolyMeshFromFile("./cow.geo");
+	std::cout << test->get_nfaces() << std::endl;
 	int width = 640, height = 480;
 	Color* image = new Color[width * height];
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
 
-	Camera camera(Vec3(0.0, 1.0, 5.0), Vec3(0.0, 1.0, 4.0), Vec3(0.0, 2.0, 5.0), (20 * PI / 180.0), (double)width/(double)height);
-	Light light(Vec3(0.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
+	Vec3 v0(-1, -1, 10);
+	Vec3 v1(1, -1, 10);
+	Vec3 v2(0, 1, 10);
+
+	Camera camera(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 0.0, 1.0), Vec3(0.0, 1.0, 0.0), ((51.52 * 0.5) * PI / 180.0), (double)width/(double)height);
+	Light light(Vec3(0.0, 1.0, 0.0), Color(1.0, 1.0, 1.0), 100);
 	Light light1(Vec3(7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 	Light light2(Vec3(-7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 
 	Plane plane(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Color(0.03, 0.77, 0.85), diffuse);
-	Sphere sphere(Vec3(0.0, 1.0, 0.0), 1, Color(1.0, 0.0, 0.0), diffuse);
-	Sphere sphere1(Vec3(0.0, 1.0, -2.0), 1, Color(1.0, 1.0, 1.0), diffuse);
-	Sphere sphere2(Vec3(3.0, 1.0, 0.0), 1, Color(1.0, 0.5, 0.0), diffuse);
-	scene.push_back(&plane);
+	Sphere sphere(Vec3(0.0, 1.0, -3.0), 1, Color(1.0, 0.0, 0.0), phong);
+	Sphere sphere1(Vec3(-3.0, 1.0, -2.0), 1, Color(1.0, 1.0, 1.0), diffuse);
+	Sphere sphere2(Vec3(3.0, 1.0, -3.0), 1, Color(1.0, 0.5, 0.0), diffuse);
+	Triangle triangle(v1, v0, v2, Color(0.03, 0.77, 0.85), diffuse);
+	//scene.push_back(&plane);
+	//scene.push_back(&triangle);
 	//scene.push_back(&sphere1);
 	//scene.push_back(&sphere2);
-	scene.push_back(&sphere);
-	lights.push_back(light);
+	//scene.push_back(&sphere);
+	//lights.push_back(light);
 	//lights.push_back(light2);
 	//lights.push_back(light1);
+	scene.push_back(test);
 	
 
 	for (int i = 0; i < width; i++) {
@@ -204,8 +326,10 @@ int main()
 				scene[i]->intersected(camera_ray, i);
 
 			if (camera_ray->get_index() != -1) {
-				*pixel = trace(camera_ray, lights, scene);
-			}
+				std::cout << "yes";
+				//*pixel = scene[camera_ray->get_index()]->get_color();
+				//*pixel = trace(camera_ray, lights, scene);
+			} 
 			else
 				*pixel = Color(0.0, 0.0, 0.0);
 		}

@@ -4,14 +4,11 @@
 
 class Vec3
 {
-private: 
+public: 
 	double x, y, z;
 public:
 	Vec3();
 	Vec3(double a, double b, double c);
-	double get_x();
-	double get_y();
-	double get_z();
 	double magnitude();
 	double squared_magnitude();
 	Vec3 normalize();

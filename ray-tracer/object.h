@@ -3,7 +3,7 @@
 #include "light.h"
 #include "color.h"
 
-enum Material { specular, diffuse, refractive };
+enum Material { reflective, diffuse, refractive, phong };
 
 class Object
 {

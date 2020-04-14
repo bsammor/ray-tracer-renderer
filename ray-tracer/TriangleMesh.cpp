@@ -1,23 +1,16 @@
-#include "triangle.h"
-#include <iostream>
+#include "TriangleMesh.h"
 
-Triangle::Triangle()
+TriangleMesh::TriangleMesh(uint32_t nfaces, uint32_t* faceIndex, uint32_t* vertsIndex, Vec3* verts, Vec3* normals, Vec3* st)
 {
-    v0 = Vec3();
-    v1 = Vec3(1, 1, 1);
-    v2 = Vec3(2, 2, 2);
+	this->nfaces = nfaces;
+	this->faceIndex = faceIndex;
+	this->vertsIndex = vertsIndex;
+	this->verts = verts;
+	this->normals = normals;
+	this->st = st;
 }
 
-Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color, Material material)
-{
-    this->v0 = v0;
-    this->v1 = v1;
-    this->v2 = v2;
-    this->color = color;
-    this->material = material;
-}
-
-bool Triangle::intersected(Ray* ray, int index)
+triangle_intersection(Ray* ray, int index)
 {
     float t = 0.0;
     float u = 0.0, v = 0.0;
@@ -74,12 +67,41 @@ bool Triangle::intersected(Ray* ray, int index)
     return true; // this ray hits the triangle 
 }
 
-Ray* Triangle::create_shadow_ray(Ray* camera_ray, Light light)
+
+bool TriangleMesh::intersected(Ray* ray, int index)
+{
+    uint32_t j = 0;
+    bool isect = false;
+    for (uint32_t i = 0; i < nfaces; ++i) {
+        const Vec3& v0 = P[trisIndex[j]];
+        const Vec3& v1 = P[trisIndex[j + 1]];
+        const Vec3& v2 = P[trisIndex[j + 2]];
+        float u, v;
+        if (triangle_intersection(ray->get_origin(), ray->get_direction(), v0, v1, v2, t, u, v) && t < tNear) {
+            tNear = t;
+            uv.x = u;
+            uv.y = v;
+            triIndex = i;
+            ray->set_index(index);
+            isect = true;
+        }
+        j += 3;
+    }
+
+    return isect;
+}
+
+Ray* TriangleMesh::create_shadow_ray(Ray* camera_ray, Light light)
 {
 	return nullptr;
 }
 
-Vec3 Triangle::get_normal(Vec3 point)
+Vec3 TriangleMesh::get_normal(Vec3 point)
 {
-    return Vec3();
+	return Vec3();
+}
+
+uint32_t TriangleMesh::get_nfaces()
+{
+	return nfaces;
 }
