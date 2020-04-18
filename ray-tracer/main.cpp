@@ -10,78 +10,20 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <vector>
-#include "TriangleMesh.h"
+#include "triangle_mesh.h"
 #include <cstdio> 
 #include <cstdlib> 
-#include <memory> 
-#include <vector> 
-#include <utility> 
-#include <cstdint> 
-#include <iostream> 
-#include <fstream> 
-#include <cmath> 
-#include <sstream> 
-#include <chrono> 
+#include "tiny_obj_loader.h"
 #define PI 3.14159265358979323846
-
-TriangleMesh* loadPolyMeshFromFile(const char* file)
-{
-	std::ifstream ifs;
-	try { 
-		ifs.open(file);
-		if (ifs.fail()) throw;
-		std::stringstream ss;
-		ss << ifs.rdbuf();
-		uint32_t numFaces;
-		ss >> numFaces;
-		uint32_t* faceIndex(new uint32_t[numFaces]);
-		uint32_t vertsIndexArraySize = 0;
-		// reading face index array
-		for (uint32_t i = 0; i < numFaces; ++i) {
-			ss >> faceIndex[i];
-			vertsIndexArraySize += faceIndex[i];
-		}
-		uint32_t* vertsIndex(new uint32_t[vertsIndexArraySize]);
-		uint32_t vertsArraySize = 0;
-		// reading vertex index array
-		for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
-			ss >> vertsIndex[i];
-			if (vertsIndex[i] > vertsArraySize) vertsArraySize = vertsIndex[i];
-		}
-		vertsArraySize += 1;
-		// reading vertices
-		Vec3* verts(new Vec3[vertsArraySize]);
-		for (uint32_t i = 0; i < vertsArraySize; ++i) {
-			ss >> verts[i].x >> verts[i].y >> verts[i].z;
-		}
-		// reading normals
-		Vec3* normals(new Vec3[vertsIndexArraySize]);
-		for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
-			ss >> normals[i].x >> normals[i].y >> normals[i].z;
-		}
-		// reading st coordinates
-		Vec3* st(new Vec3[vertsIndexArraySize]);
-		for (uint32_t i = 0; i < vertsIndexArraySize; ++i) {
-			ss >> st[i].x >> st[i].y;
-		}
-		return new TriangleMesh(numFaces, faceIndex, vertsIndex, verts, normals, st);
-	}
-	catch (...) {
-		ifs.close();
-	}
-	ifs.close();
-
-	return nullptr;
-}
 
 void save_image(double width, double height, Color* image) 
 {
 	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
 	ofs << "P6\n" << width << " " << height << "\n255\n";
 	for (int i = 0; i < width * height; ++i) {
-		ofs << (unsigned char)(std::min(double(1), image[i].get_r()) * 255) <<
-			(unsigned char)(std::min(double(1), image[i].get_g()) * 255) <<
-			(unsigned char)(std::min(double(1), image[i].get_b()) * 255);
+		ofs << (unsigned char)(std::min(double(1), image[i].r) * 255) <<
+			(unsigned char)(std::min(double(1), image[i].g) * 255) <<
+			(unsigned char)(std::min(double(1), image[i].b) * 255);
 	}
 	ofs.close();
 }
@@ -137,9 +79,10 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 {
 	int obj_index = camera_ray->get_index();
 	Color color;
-	if (true) {
-		color = color + scene[obj_index]->get_color() * 0.2;
-	}
+	
+	//ambient light
+	color += scene[obj_index]->get_color() * 0.2;
+
 	if (scene[obj_index]->get_material() == diffuse)
 	{
 		Vec3 point = camera_ray->get_intersection_point();
@@ -161,10 +104,10 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 				}
 			}
 			if (!covered) {
-				color = color + (scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir)));
+				color += (scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir)));
 			}
 			else {
-				color = color + Color();
+				color += Color();
 			}
 		}
 	}
@@ -223,7 +166,7 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 					reflection_color = trace(reflection_ray, lights, scene, depth + 1);
 				}
 				// mix the two
-				color = color + ( reflection_color* kr + refraction_color * (1 - kr));
+				color += ( reflection_color* kr + refraction_color * (1 - kr));
 			}
 		}
 
@@ -258,7 +201,7 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 		}
 
 		for (Light light : lights) {
-			Vec3 lightDir = light.get_origin() - camera_ray->get_intersection_point();
+			Vec3 lightDir = light.get_position() - camera_ray->get_intersection_point();
 			Vec3 V = camera_ray->get_direction() * -1;
 			// Blinn-Phong
 			Vec3 H = (lightDir + V).normalize();
@@ -273,8 +216,8 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 			// no?
 			specular = specular * 0.04;
 		}
-		color = color + diffuse;
-		color = color + specular;
+		color += diffuse;
+		color += specular;
 	}
 
 	return color;
@@ -282,58 +225,74 @@ Color trace(Ray* camera_ray, std::vector<Light> lights, std::vector<Object*> sce
 
 int main() 
 {
-	TriangleMesh* test = loadPolyMeshFromFile("./cow.geo");
-	std::cout << test->get_nfaces() << std::endl;
 	int width = 640, height = 480;
 	Color* image = new Color[width * height];
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
+	std::vector<TriangleMesh*> meshes;
 
 	Vec3 v0(-1, -1, 10);
 	Vec3 v1(1, -1, 10);
 	Vec3 v2(0, 1, 10);
 
-	Camera camera(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 0.0, 1.0), Vec3(0.0, 1.0, 0.0), ((51.52 * 0.5) * PI / 180.0), (double)width/(double)height);
-	Light light(Vec3(0.0, 1.0, 0.0), Color(1.0, 1.0, 1.0), 100);
+	Camera camera(Vec3(0.0, 10.0, 10), Vec3(0.0, 0.0, 0.0), Vec3(0.0, 11.0, 10), ((50 * 0.5) * PI / 180.0), (double)width/(double)height);
+	Light light(Vec3(0.0, 1.0, 2.0), Color(1.0, 1.0, 1.0), 100);
 	Light light1(Vec3(7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 	Light light2(Vec3(-7.0, 10.0, 0.0), Color(1.0, 1.0, 1.0), 1000);
 
 	Plane plane(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Color(0.03, 0.77, 0.85), diffuse);
-	Sphere sphere(Vec3(0.0, 1.0, -3.0), 1, Color(1.0, 0.0, 0.0), phong);
+	Sphere sphere(Vec3(0.0, 1.0, 0.0), 1, Color(1.0, 0.0, 0.0), phong);
 	Sphere sphere1(Vec3(-3.0, 1.0, -2.0), 1, Color(1.0, 1.0, 1.0), diffuse);
 	Sphere sphere2(Vec3(3.0, 1.0, -3.0), 1, Color(1.0, 0.5, 0.0), diffuse);
-	Triangle triangle(v1, v0, v2, Color(0.03, 0.77, 0.85), diffuse);
-	//scene.push_back(&plane);
+	Triangle triangle(v1, v0, v2, Color(1.0, 1.0, 1.0), diffuse);
+	scene.push_back(&plane);
 	//scene.push_back(&triangle);
 	//scene.push_back(&sphere1);
 	//scene.push_back(&sphere2);
-	//scene.push_back(&sphere);
-	//lights.push_back(light);
+	scene.push_back(&sphere);
+	lights.push_back(light);
 	//lights.push_back(light2);
 	//lights.push_back(light1);
-	scene.push_back(test);
-	
+
+	//TriangleMesh* mesh = new TriangleMesh("obj/redcat.obj");
+	//scene.push_back(mesh);
 
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
 			double new_x = (2.0 * i) / width - 1.0;
 			double new_y = (-2.0 * j) / height + 1.0;
 
-			Ray *camera_ray = camera.create_camera_ray(new_x, new_y);
-			Color *pixel = image + (i + j * width);
+			Ray* camera_ray = camera.create_camera_ray(new_x, new_y);
+			Color* pixel = image + (i + j * width);
 
 			for (int i = 0; i < scene.size(); i++)
 				scene[i]->intersected(camera_ray, i);
 
 			if (camera_ray->get_index() != -1) {
-				std::cout << "yes";
-				//*pixel = scene[camera_ray->get_index()]->get_color();
-				//*pixel = trace(camera_ray, lights, scene);
-			} 
+				/*if (dynamic_cast<Plane*>(scene[camera_ray->get_index()])) {
+					if (camera_ray->get_intersection_point().z > -10) {
+						unsigned square = int(floor(camera_ray->get_intersection_point().x)) +
+							int(floor(camera_ray->get_intersection_point().z));  // (floor() rounds down)
+						if (square % 2 == 0)                           // black tile
+							*pixel = Color();
+						else  // white tile
+							*pixel = Color(1, 1, 1);
+					}
+					else
+						*pixel = Color(0, 0, 0);
+					
+				}*/
+				//else {
+					//std::cout << "yes";
+					//*pixel = Color(camera_ray->u, camera_ray->v, (1 - camera_ray->u - camera_ray->v));
+					*pixel = trace(camera_ray, lights, scene);
+				//}
+			}
 			else
 				*pixel = Color(0.0, 0.0, 0.0);
 		}
-	}   
+	}
+
 
 	save_image(width, height, image);
 

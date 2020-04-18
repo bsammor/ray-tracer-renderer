@@ -18,6 +18,8 @@ public:
 	double get_tmax();
 	void set_index(int i);
 	int get_index();
+
+	double u = 0.0, v = 0.0;
 };
 
 

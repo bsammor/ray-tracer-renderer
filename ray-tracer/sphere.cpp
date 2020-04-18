@@ -2,15 +2,15 @@
 
 Sphere::Sphere()
 {
-	origin = Vec3();
+	position = Vec3();
 	radius = 0.0;
 	color = Color();
 	material = diffuse;
 }
 
-Sphere::Sphere(Vec3 origin, double radius, Color color, Material material)
+Sphere::Sphere(Vec3 position, double radius, Color color, Material material)
 {
-	this->origin = origin;
+	this->position = position;
 	this->radius = radius;
 	this->color = color;
 	this->material = material;
@@ -23,7 +23,7 @@ double Sphere::get_radius()
 
 bool Sphere::intersected(Ray* ray, int index)
 {
-	Vec3 length = ray->get_origin() - origin;
+	Vec3 length = ray->get_origin() - position;
 
 	double a = 1;
 	double b = 2 * ray->get_direction().dot_product(length);
@@ -48,17 +48,7 @@ bool Sphere::intersected(Ray* ray, int index)
 	return false;
 }
 
-Ray* Sphere::create_shadow_ray(Ray* camera_ray, Light light)
-{
-	Vec3 point = camera_ray->get_intersection_point();
-	Vec3 normal = (point - origin).normalize();
-	Vec3 light_dir = light.get_direction(point);
-	double shadow_bias = 1e-4;
-
-	return new Ray(point + normal * shadow_bias, light_dir.normalize(), MINIMUM, INFINITY);
-}
-
 Vec3 Sphere::get_normal(Vec3 point)
 {
-	return (point - origin).normalize();
+	return (point - position).normalize();
 }

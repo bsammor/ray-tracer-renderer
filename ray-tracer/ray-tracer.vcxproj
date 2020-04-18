@@ -142,7 +142,7 @@
     <ClCompile Include="color.cpp" />
     <ClCompile Include="light.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="TriangleMesh.cpp" />
+    <ClCompile Include="triangle_mesh.cpp" />
     <ClCompile Include="plane.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="sphere.cpp" />
@@ -153,12 +153,14 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="light.h" />
-    <ClInclude Include="TriangleMesh.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
+    <ClInclude Include="triangle_mesh.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="plane.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="triangle.h" />
+    <ClInclude Include="vec2.h" />
     <ClInclude Include="vec3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -14,24 +14,9 @@ Color::Color(double r, double g, double b)
 	this->b = b;
 }
 
-double Color::get_r()
-{
-	return r;
-}
-
-double Color::get_g()
-{
-	return g;
-}
-
-double Color::get_b()
-{
-	return b;
-}
-
 Color Color::operator*(Color c1)
 {
-	return Color(r * c1.get_r(), g * c1.get_g(), b * c1.get_b());
+	return Color(r * c1.r, g * c1.g, b * c1.b);
 }
 
 Color Color::operator*(double scalar)
@@ -46,12 +31,14 @@ Color Color::operator/(double scalar)
 
 Color Color::operator+=(Color c1)
 {
-	r + c1.get_r(), g + c1.get_g(), b + c1.get_b();
+	r += c1.r;
+	g += c1.g;
+	b += c1.b;
 
 	return *this;
 }
 
 Color Color::operator+(Color c1)
 {
-	return Color(r + c1.get_r(), g + c1.get_g(), b + c1.get_b());
+	return Color(r + c1.r, g + c1.g, b + c1.b);
 }

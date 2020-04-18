@@ -2,21 +2,21 @@
 
 Light::Light()
 {
-	origin = Vec3();
+	position = Vec3();
 	intensity = 0.0;
 	color = Color();
 }
 
-Light::Light(Vec3 origin, Color color, double intensity)
+Light::Light(Vec3 position, Color color, double intensity)
 {
-	this->origin = origin;
+	this->position = position;
 	this->intensity = intensity;
 	this->color = color;
 }
 
-Vec3 Light::get_origin()
+Vec3 Light::get_position()
 {
-	return origin;
+	return position;
 }
 
 Color Light::get_color()
@@ -26,7 +26,7 @@ Color Light::get_color()
 
 bool Light::intersected(Ray* ray, Color* pixel, double radius_squared)
 {
-	Vec3 length = ray->get_origin() - origin;
+	Vec3 length = ray->get_origin() - position;
 
 	double a = 1;
 	double b = 2 * ray->get_direction().dot_product(length);
@@ -57,5 +57,5 @@ double Light::get_intensity()
 
 Vec3 Light::get_direction(Vec3 P)
 {
-	return (origin - P);
+	return (position - P);
 }

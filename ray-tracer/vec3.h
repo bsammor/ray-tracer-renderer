@@ -6,7 +6,7 @@ class Vec3
 {
 public: 
 	double x, y, z;
-public:
+
 	Vec3();
 	Vec3(double a, double b, double c);
 	double magnitude();
@@ -23,14 +23,15 @@ public:
 	Vec3 operator-=(Vec3 v1);
 
 	Vec3 operator*(double scalar);
-	Vec3 operator*(Vec3 v1);
 	Vec3 operator*=(double scalar);
+
+	Vec3 operator*(Vec3 v1);
 	Vec3 operator*=(Vec3 v1);
 
 	Vec3 operator/(double scalar);
-	Vec3 operator/(Vec3 v1);
 	Vec3 operator/=(double scalar);
-	Vec3 operator/=(Vec3 v1);
 
+	Vec3 operator/(Vec3 v1);
+	Vec3 operator/=(Vec3 v1);
 };
 

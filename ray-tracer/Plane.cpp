@@ -2,15 +2,15 @@
 
 Plane::Plane()
 {
-	origin = Vec3();
+	position = Vec3();
 	normal = Vec3();
 	color = Color();
 	material = diffuse;
 }
 
-Plane::Plane(Vec3 origin, Vec3 direction, Color color, Material material)
+Plane::Plane(Vec3 position, Vec3 direction, Color color, Material material)
 {
-	this->origin = origin;
+	this->position = position;
 	this->normal = direction;
 	this->color = color;
 	this->material = material;
@@ -29,7 +29,7 @@ bool Plane::intersected(Ray* ray, int index)
 	}
 
 	// Find point of intersection
-	double t = (origin - ray->get_origin()).dot_product(normal)
+	double t = (position - ray->get_origin()).dot_product(normal)
 		/ dDotN;
 
 	if (t <= ray->get_tnear() || t >= ray->get_tmax())
@@ -41,11 +41,6 @@ bool Plane::intersected(Ray* ray, int index)
 	ray->set_tmax(t);
 	ray->set_index(index);
 	return true;
-}
-
-Ray* Plane::create_shadow_ray(Ray* camera_ray, Light light)
-{
-	return new Ray();
 }
 
 Vec3 Plane::get_normal(Vec3 point)
