@@ -9,7 +9,7 @@ Triangle::Triangle()
     v2 = Vec3(2, 2, 2);
     color = Color();
     material = diffuse;
-    normal = (v1 - v0).cross_product(v2 - v0).normalize();
+    fn = (v1 - v0).cross_product(v2 - v0).normalize();
 }
 
 Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color, Material material)
@@ -19,13 +19,11 @@ Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color, Material material)
     this->v2 = v2;
     this->color = color;
     this->material = material;
-    this->normal = (v1 - v0).cross_product(v2 - v0).normalize();
+    this->fn = (v1 - v0).cross_product(v2 - v0).normalize();
 }
 
-bool Triangle::intersected(Ray* ray, int index)
+bool Triangle::intersected(Ray* ray, int index, double& u, double& v, double& t)
 {
-    double u = 0.0, v = 0.0, t = 0.0;
-
     Vec3 v0v1 = v1 - v0;
     Vec3 v0v2 = v2 - v0;
     Vec3 pvec = ray->get_direction().cross_product(v0v2);
@@ -46,17 +44,15 @@ bool Triangle::intersected(Ray* ray, int index)
 
     t = v0v2.dot_product(qvec) * invDet;
 
-    if (t < ray->get_tmax()) {
-        ray->set_index(index);
-        ray->set_tmax(t);
-        ray->u = u;
-        ray->v = v;
+    if (t < ray->get_tmax()) 
+    {
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 Vec3 Triangle::get_normal(Vec3 point)
 {
-    return normal;
+    return fn;
 }

@@ -17,7 +17,7 @@ Plane::Plane(Vec3 position, Vec3 direction, Color color, Material material)
 }
 
 
-bool Plane::intersected(Ray* ray, int index)
+bool Plane::intersected(Ray* ray, int index, double &u, double &v, double& t)
 {
 	// First, check if we intersect
 	double dDotN = ray->get_direction().dot_product(normal);
@@ -29,7 +29,7 @@ bool Plane::intersected(Ray* ray, int index)
 	}
 
 	// Find point of intersection
-	double t = (position - ray->get_origin()).dot_product(normal)
+	t = (position - ray->get_origin()).dot_product(normal)
 		/ dDotN;
 
 	if (t <= ray->get_tnear() || t >= ray->get_tmax())
@@ -38,8 +38,6 @@ bool Plane::intersected(Ray* ray, int index)
 		return false;
 	}
 
-	ray->set_tmax(t);
-	ray->set_index(index);
 	return true;
 }
 

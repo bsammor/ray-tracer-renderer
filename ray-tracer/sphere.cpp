@@ -21,7 +21,7 @@ double Sphere::get_radius()
 	return radius;
 }
 
-bool Sphere::intersected(Ray* ray, int index)
+bool Sphere::intersected(Ray* ray, int index, double& u, double& v, double& t)
 {
 	Vec3 length = ray->get_origin() - position;
 
@@ -34,14 +34,12 @@ bool Sphere::intersected(Ray* ray, int index)
 
 	if (t0 > ray->get_tnear() && t0 < ray->get_tmax())
 	{
-		ray->set_tmax(t0);
-		ray->set_index(index);
+		t = t0;
 		return true;
 	}
 	else if (t1 > ray->get_tnear() && t1 < ray->get_tmax())
 	{
-		ray->set_tmax(t1);
-		ray->set_index(index);
+		t = t1;
 		return true;
 	}
 
