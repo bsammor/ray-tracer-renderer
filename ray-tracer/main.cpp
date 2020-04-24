@@ -9,7 +9,8 @@
 #include "triangle.h"
 #include "ppm.h"
 #include <stdlib.h>
-#include<stdio.h>
+#include <stdio.h>
+#include <chrono>
 #include <algorithm>
 #include <vector>
 #include "triangle_mesh.h"
@@ -30,7 +31,7 @@ enum ray_type
 
 void save_image(double width, double height, Color* image) 
 {
-	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
+	std::ofstream ofs("./scene.ppm", std::ios::out | std::ios::binary);
 	ofs << "P6\n" << width << " " << height << "\n255\n";
 	for (int i = 0; i < width * height; ++i) 
 	{
@@ -114,7 +115,6 @@ bool trace(Ray* ray, std::vector<Object*> scene, ray_type type)
 }
 
 
-
 Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, int depth = 0) 
 {
 	if (depth < 5) 
@@ -129,14 +129,11 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 
 			//testing meshes
 			if (TriangleMesh* mesh = dynamic_cast<TriangleMesh*>(scene[obj_index])) {
-				
 				ppm tex_image;
 
 				for (auto x : images) {
 					if (mesh->tex_name == x.first) {
 						tex_image = x.second;
-						//std::cout << mesh->tex_name << " " << x.first << std::endl;
-						//std::cin.get();
 					}
 				}
 
@@ -148,9 +145,9 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 
 				Color texture = Color(tex_image.r[i + j * tex_image.width] / 255., tex_image.g[i + j * tex_image.width] / 255., tex_image.b[i + j * tex_image.width] / 255.);
 				//ambient light
-				//color += texture * 0.2;
+				color += texture * 0.05;
 
-				/*for (Light light : lights)
+				for (Light light : lights)
 				{
 					Vec3 light_dir = light.get_direction(point);
 					double r2 = light_dir.dot_product(light_dir);
@@ -158,8 +155,8 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 					light_dir = light_dir.normalize();
 
 					color += texture * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir));
-				}*/
-				return texture;
+				}
+				return color;
 			}
 			else if (scene[obj_index]->get_material() == diffuse)
 			{
@@ -254,29 +251,29 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 
 int main() 
 {
-	int width = 200, height = 150;
+	int width = 640, height = 480;
 	Color* image = new Color[width * height];
-
-	std::vector<Object*> scene;
-	std::vector<Light> lights;
 
 	std::string path = "textures";
 	for (const auto& entry : fs::directory_iterator(path)) {
 		auto name = entry.path();
 		std::string image = name.string();
-		ppm test(2048, 2048);
+		ppm test(1024, 1024);
 		test.read(image);
-		images.insert(std::pair<std::string, ppm>(image.erase(0, 7), test));
+		images.insert(std::pair<std::string, ppm>(image.erase(0, 9), test));
 	}
 
-	Camera camera(Vec3(5.0, 10, -50.0), Vec3(0.0, 0.0, 0.0), Vec3(5.0, 11, -50.0), ((50 * 0.5) * PI / 180.0), (double)width/(double)height);
-	Light light(Vec3(0.0, 3.0, 0.0), Color(1.0, 1.0, 1.0), 100);
-	Light light1(Vec3(-3.0, 3.0, 0.0), Color(1.0, 1.0, 1.0), 100);
-	Light light2(Vec3(3.0, 3.0, 0.0), Color(1.0, 1.0, 1.0), 100);
-	Light light3(Vec3(0.0, 3.0, -3.0), Color(1.0, 1.0, 1.0), 100);
-	Light light4(Vec3(0.0, 3.0, 3.0), Color(1.0, 1.0, 1.0), 100);
-	Light light5(Vec3(-3.0, 3.0, -3.0), Color(1.0, 1.0, 1.0), 100);
-	Light light6(Vec3(3.0, 3.0, 3.0), Color(1.0, 1.0, 1.0), 100);
+	std::vector<Object*> scene;
+	std::vector<Light> lights;
+
+	Camera camera(Vec3(2.0, 5, 10.0), Vec3(0.0, 0, 0.0), Vec3(2.0, 6, 10.0), ((50 * 0.5) * PI / 180.0), (double)width/(double)height);
+	Light light(Vec3(0.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
+	Light light1(Vec3(-6.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
+	Light light2(Vec3(6.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
+	Light light3(Vec3(0.0, 4.0, -6.0), Color(1.0, 1.0, 1.0), 100);
+	Light light4(Vec3(0.0, 4.0, 6.0), Color(1.0, 1.0, 1.0), 100);
+	Light light5(Vec3(-6.0, 4.0, -6.0), Color(1.0, 1.0, 1.0), 100);
+	Light light6(Vec3(6.0, 4.0, 6.0), Color(1.0, 1.0, 1.0), 100);
 
 	Plane plane(Vec3(0.0, -3.0, 0.0), Vec3(0.0, -2.0, 0.0), Color(0.03, 0.77, 0.85), diffuse);
 	Plane plane1(Vec3(0.0, 0.0, -3.0), Vec3(0.0, 0.0, -2.0), Color(1.0, 0.0, 0.0), diffuse);
@@ -297,17 +294,18 @@ int main()
 
 
 	lights.push_back(light);
-	//lights.push_back(light1);
-	//lights.push_back(light2);
-	//lights.push_back(light3);
-	//lights.push_back(light4);
-	//lights.push_back(light5);
-	//lights.push_back(light6);
+	lights.push_back(light1);
+	lights.push_back(light2);
+	lights.push_back(light3);
+	lights.push_back(light4);
+	lights.push_back(light5);
+	lights.push_back(light6);
 
 
-	TriangleMesh* mesh = new TriangleMesh("cottage.obj", Color(1.0, 0.0, 0.0), diffuse);
+	TriangleMesh* mesh = new TriangleMesh("scene.obj", Color(1.0, 0.0, 0.0), diffuse);
 	scene.push_back(mesh);
 
+	auto timeStart = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < width; i++) 
 	{
 		std::cout << i << std::endl;
@@ -321,7 +319,9 @@ int main()
 			*pixel = cast_ray(camera_ray, scene, lights);
 		}
 	}
-
+	auto timeEnd = std::chrono::high_resolution_clock::now();
+	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
+	fprintf(stderr, "\rDone: %.2f (sec)\n", passedTime / 1000);
 
 	save_image(width, height, image);
 
