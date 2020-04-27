@@ -86,8 +86,8 @@ bool TriangleMesh::intersected(Ray* ray, int index, double& u, double& v, double
                 tri_vnormal = (vn0 * (1 - x - y) + vn1 * x + vn2 * y).normalize();
                 tri_tex_coordinates = vt0 * (1 - x - y) + vt1 * x + vt2 * y;
                 tri_fnormal = face.get_normal(Vec3());
-                int o = shape.mesh.material_ids[f];
-                tex_name = materials[o].diffuse_texname;
+                //int o = shape.mesh.material_ids[f];
+                //tex_name = materials[o].diffuse_texname;
             }
             index_offset += fv;
         }

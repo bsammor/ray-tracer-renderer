@@ -129,6 +129,9 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 
 			//testing meshes
 			if (TriangleMesh* mesh = dynamic_cast<TriangleMesh*>(scene[obj_index])) {
+				/*normal = mesh->tri_vnormal;
+				Vec3 tex = mesh->tri_tex_coordinates;
+
 				ppm tex_image;
 
 				for (auto x : images) {
@@ -137,9 +140,7 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 					}
 				}
 
-				normal = mesh->tri_fnormal;
-				Vec3 tex = mesh->tri_tex_coordinates;
-
+	
 				int i = round(tex.x * tex_image.width);
 				int j = round(tex.y * tex_image.height);
 
@@ -156,6 +157,8 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 
 					color += texture * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir));
 				}
+				double result = std::max(0.0, normal.dot_product(ray->get_direction() * -1));
+				color += Color(result, result, result);*/
 				return color;
 			}
 			else if (scene[obj_index]->get_material() == diffuse)
@@ -241,7 +244,7 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 					 specular += light.get_color() * light.get_intensity() / (4 * PI * r2) * std::pow(std::max(0.0, R.dot_product(ray->get_direction() * -1)), 10) * covered;
 				}
 
-				color = diffuse * 0.5 + specular * 0.5;
+				color = diffuse * 0 + specular * 1;
 				return color;
 			}
 		}
@@ -251,7 +254,7 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 
 int main() 
 {
-	int width = 640, height = 480;
+	int width = 400, height = 200;
 	Color* image = new Color[width * height];
 
 	std::string path = "textures";
@@ -266,8 +269,8 @@ int main()
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
 
-	Camera camera(Vec3(2.0, 5, 10.0), Vec3(0.0, 0, 0.0), Vec3(2.0, 6, 10.0), ((50 * 0.5) * PI / 180.0), (double)width/(double)height);
-	Light light(Vec3(0.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
+	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)width/(double)height);
+	Light light(Vec3(0.0, 1.0, 0.0), Color(1.0, 1.0, 1.0), 100);
 	Light light1(Vec3(-6.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
 	Light light2(Vec3(6.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
 	Light light3(Vec3(0.0, 4.0, -6.0), Color(1.0, 1.0, 1.0), 100);
@@ -279,7 +282,7 @@ int main()
 	Plane plane1(Vec3(0.0, 0.0, -3.0), Vec3(0.0, 0.0, -2.0), Color(1.0, 0.0, 0.0), diffuse);
 	Plane plane2(Vec3(3.0, 0.0, 0.0), Vec3(2.0, 0.0, 0.0), Color(0.0, 1.0, 0.0), diffuse);
 	Plane plane3(Vec3(-3.0, 0.0, 0.0), Vec3(-2.0, 0.0, 0.0), Color(0.0, 0.0, 1.0), diffuse);
-	Sphere sphere(Vec3(3.0, 1.0, -3.0), 1, Color(1.0, 0.0, 0.0), phong);
+	Sphere sphere(Vec3(0.0, 1.0, -3.0), 1, Color(1.0, 0.0, 0.0), phong);
 	sphere.set_ior(1.8);
 	Sphere sphere1(Vec3(0.0, 1.0, 0.0), 1, Color(0.0, 1.0, 0.0), diffuse);
 	Sphere sphere2(Vec3(-3.0, 1.0, -3.0), 1, Color(1.0, 0.0, 0.0), diffuse);
@@ -293,17 +296,17 @@ int main()
 	//scene.push_back(&sphere2);
 
 
-	lights.push_back(light);
-	lights.push_back(light1);
-	lights.push_back(light2);
-	lights.push_back(light3);
-	lights.push_back(light4);
-	lights.push_back(light5);
-	lights.push_back(light6);
+	//lights.push_back(light);
+	//lights.push_back(light1);
+	//lights.push_back(light2);
+	//lights.push_back(light3);
+	//lights.push_back(light4);
+	//lights.push_back(light5);
+	//lights.push_back(light6);
 
 
-	TriangleMesh* mesh = new TriangleMesh("scene.obj", Color(1.0, 0.0, 0.0), diffuse);
-	scene.push_back(mesh);
+	//TriangleMesh* mesh = new TriangleMesh("sphere.obj", Color(1.0, 0.0, 0.0), diffuse);
+	//scene.push_back(mesh);
 
 	auto timeStart = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < width; i++) 
