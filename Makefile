@@ -4,7 +4,7 @@ HEADER	= vec3.h vec2.h light.h camera.h color.h plane.h object.h triangle.h tria
 OUT	= tracer
 CC	 = g++
 FLAGS	 = -g -c -Wall 
-LFLAGS	 = -std=c++17 -lstdc++fs -ljpeg
+LFLAGS	 = -lpthread -std=c++17 -lstdc++fs -ljpeg
 
 all: $(OBJS)
 	$(CC) -g $(OBJS) -o $(OUT) $(LFLAGS)

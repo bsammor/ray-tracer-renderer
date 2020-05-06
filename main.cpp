@@ -10,6 +10,10 @@
 #include <jpeglib.h>
 #include <iostream>
 #include <fstream>
+#include <thread>
+#include <atomic>
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 #include "texture.h"
 #include "plane.h"
@@ -19,24 +23,24 @@
 #include "camera.h"
 #include "vec3.h"
 #include "triangle.h"
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
 
 
 #define PI 3.14159265358979323846
 #define BIAS 0.0001; 
 std::map<std::string, Texture> textures_map;
+int WIDTH = 640;
+int HEIGHT = 480;
 
 enum ray_type
 {
 	shadow, camera
 };
 
-void save_image(double width, double height, Color* image) 
+void save_image(double WIDTH, double HEIGHT, Color* image) 
 {
 	std::ofstream ofs("./scene.ppm", std::ios::out | std::ios::binary);
-	ofs << "P6\n" << width << " " << height << "\n255\n";
-	for (int i = 0; i < width * height; ++i) 
+	ofs << "P6\n" << WIDTH << " " << HEIGHT << "\n255\n";
+	for (int i = 0; i < WIDTH * HEIGHT; ++i) 
 	{
 		ofs << (unsigned char)(std::min(double(1), image[i].r) * 255) <<
 			(unsigned char)(std::min(double(1), image[i].g) * 255) <<
@@ -258,80 +262,76 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 	return Color();
 }
 
-int main() 
+void start_thread(const unsigned start, const unsigned end, Color *image, int th_i)
 {
-	int width = 640, height = 480;
-	Color* image = new Color[width * height];
+	std::vector<Object*> scene;
+	std::vector<Light> lights;
+
+	Camera camera(Vec3(0.0, 5, 5), Vec3(0.0, 0, 0.0), Vec3(0.0, 6, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+
+	TriangleMesh* mesh = new TriangleMesh("belf.obj", Color(1.0, 0.0, 0.0), diffuse);
+	scene.push_back(mesh);
+
+
+  for (unsigned i = start; i < end; i++) {
+		int x = i % WIDTH;
+		int y = i / WIDTH;
+		double new_x = (2.0 * x) / WIDTH - 1.0;
+		double new_y = (-2.0 * y) / HEIGHT + 1.0;
+		Color* pixel = image + (x + y * WIDTH);
+
+		Ray* camera_ray = camera.create_camera_ray(new_x, new_y);
+		*pixel = cast_ray(camera_ray, scene, lights);
+	}
+	
+	std::cout << "thread " << th_i << "is finished" << std::endl;
+}
+
+void create_threads(Color *image) 
+{
+	int no_threads = std::thread::hardware_concurrency();
+	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;
+	std::cout << "Threads: " << no_threads << std::endl;
+
+	std::thread *thread_pool = new std::thread[no_threads];
+
+	int resolution = WIDTH * HEIGHT;
+
+	int chunk = resolution / no_threads;
+	int rem = resolution % no_threads;
+
+	// launch threads
+	for (int i = 0; i < no_threads - 1; i++) 
+	{
+		thread_pool[i] = std::thread(start_thread, i * chunk, (i + 1) * chunk, image, i);
+	}
+
+	start_thread((no_threads - 1) * chunk, (no_threads)*chunk + rem, image, no_threads-1);
+
+	for (int i = 0; i < no_threads - 1; i++) thread_pool[i].join();
+
+	save_image(WIDTH, HEIGHT, image);
+}
+
+void setup() 
+{
+	Color* image = new Color[WIDTH * HEIGHT];
 
     std::string path = "textures";
-    for (const auto & entry : fs::directory_iterator(path)) {
+    for (const auto & entry : fs::directory_iterator(path)) 
+	{
 		std::string name = entry.path().string();
 		Texture texture(name.c_str());
 		textures_map.insert(std::pair<std::string, Texture>(name, texture));
 	}
         
-
-	std::vector<Object*> scene;
-	std::vector<Light> lights;
-
-	Camera camera(Vec3(0.0, 5, 5), Vec3(0.0, 0, 0.0), Vec3(0.0, 6, 5), ((50 * 0.5) * PI / 180.0), (double)width/(double)height);
-	Light light(Vec3(0.0, 1.0, 0.0), Color(1.0, 1.0, 1.0), 100);
-	Light light1(Vec3(-6.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
-	Light light2(Vec3(6.0, 4.0, 0.0), Color(1.0, 1.0, 1.0), 100);
-	Light light3(Vec3(0.0, 4.0, -6.0), Color(1.0, 1.0, 1.0), 100);
-	Light light4(Vec3(0.0, 4.0, 6.0), Color(1.0, 1.0, 1.0), 100);
-	Light light5(Vec3(-6.0, 4.0, -6.0), Color(1.0, 1.0, 1.0), 100);
-	Light light6(Vec3(6.0, 4.0, 6.0), Color(1.0, 1.0, 1.0), 100);
-
-	Plane plane(Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), Color(0.03, 0.77, 0.85), diffuse);
-	Plane plane1(Vec3(0.0, 0.0, -3.0), Vec3(0.0, 0.0, -2.0), Color(1.0, 0.0, 0.0), diffuse);
-	Plane plane2(Vec3(3.0, 0.0, 0.0), Vec3(2.0, 0.0, 0.0), Color(0.0, 1.0, 0.0), diffuse);
-	Plane plane3(Vec3(-3.0, 0.0, 0.0), Vec3(-2.0, 0.0, 0.0), Color(0.0, 0.0, 1.0), diffuse);
-	Sphere sphere(Vec3(0.0, 1.0, -5.0), 1, Color(1.0, 0.0, 0.0), diffuse);
-	sphere.set_ior(1.8);
-	Sphere sphere1(Vec3(0.0, 1.0, 0.0), 1, Color(0.0, 1.0, 0.0), diffuse);
-	Sphere sphere2(Vec3(-3.0, 1.0, -3.0), 1, Color(1.0, 0.0, 0.0), diffuse);
-
-	//scene.push_back(&plane);
-	//scene.push_back(&plane1);
-	//scene.push_back(&plane2);
-	//scene.push_back(&plane3);
-	//scene.push_back(&sphere);
-	//scene.push_back(&sphere1);
-	//scene.push_back(&sphere2);
+	create_threads(image);
+}
 
 
-	//lights.push_back(light);
-	//lights.push_back(light1);
-	//lights.push_back(light2);
-	//lights.push_back(light3);
-	//lights.push_back(light4);
-	//lights.push_back(light5);
-	//lights.push_back(light6);
-
-
-	TriangleMesh* mesh = new TriangleMesh("belf.obj", Color(1.0, 0.0, 0.0), diffuse);
-	scene.push_back(mesh);
-
-	auto timeStart = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < width; i++) 
-	{
-		std::cout << i << std::endl;
-		for (int j = 0; j < height; j++) 
-		{
-			double new_x = (2.0 * i) / width - 1.0;
-			double new_y = (-2.0 * j) / height + 1.0;
-			Color* pixel = image + (i + j * width);
-
-			Ray* camera_ray = camera.create_camera_ray(new_x, new_y);
-			*pixel = cast_ray(camera_ray, scene, lights);
-		}
-	}
-	auto timeEnd = std::chrono::high_resolution_clock::now();
-	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
-	fprintf(stderr, "\rDone: %.2f (sec)\n", passedTime / 1000);
-
-	save_image(width, height, image);
-
+int main() 
+{
+	setup();
+	
 	return 0;
 }
