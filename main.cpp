@@ -267,9 +267,9 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
 
-	Camera camera(Vec3(0.0, 5, 5), Vec3(0.0, 0, 0.0), Vec3(0.0, 6, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(10, 5, 0.0), Vec3(0.0, 5, 0.0), Vec3(10.0, 6, 0.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 
-	TriangleMesh* mesh = new TriangleMesh("belf.obj", Color(1.0, 0.0, 0.0), diffuse);
+	TriangleMesh* mesh = new TriangleMesh("horse.obj", Color(1.0, 0.0, 0.0), diffuse);
 	scene.push_back(mesh);
 
 
@@ -331,7 +331,10 @@ void setup()
 
 int main() 
 {
+	auto timeStart = std::chrono::high_resolution_clock::now();
 	setup();
-	
+	auto timeEnd = std::chrono::high_resolution_clock::now();
+	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
+	fprintf(stderr, "\rDone: %.2f (sec)\n", passedTime / 1000);
 	return 0;
 }
