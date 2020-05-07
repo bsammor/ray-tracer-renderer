@@ -152,8 +152,8 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 				int j = round(tex.y * tex_image.height);
 
 				color = Color(tex_image.data[(i + j * tex_image.width) * tex_image.channels]/255.,
-				 tex_image.data[(i + j * tex_image.width) * tex_image.channels + 1]/255., 
-				 tex_image.data[(i + j * tex_image.width) * tex_image.channels + 2]/255.);
+				tex_image.data[(i + j * tex_image.width) * tex_image.channels + 1]/255., 
+				tex_image.data[(i + j * tex_image.width) * tex_image.channels + 2]/255.);
 				 
 				/*//ambient light
 				color += texture * 0.05;
@@ -169,6 +169,14 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 				}
 				double result = std::max(0.0, normal.dot_product(ray->get_direction() * -1));
 				color += Color(result, result, result);*/
+
+				/*float NdotView = std::max(0.0, normal.dot_product(ray->get_direction() * -1)); 
+				const int M = 10; 
+				float checker = (fmod(tex.x * M, 1.0) > 0.5) ^ (fmod(tex.y * M, 1.0) < 0.5); 
+				float c = 0.3 * (1 - checker) + 0.7 * checker; 
+		
+				double result = c * NdotView;
+				color = Color(result, result, result);*/
 				return color;
 			}
 			else if (scene[obj_index]->get_material() == diffuse)
@@ -267,9 +275,18 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
 
-	Camera camera(Vec3(15, 5, 0.0), Vec3(0.0, 5, 0.0), Vec3(15.0, 6, 0.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+    std::string path = "textures";
+    for (const auto & entry : fs::directory_iterator(path)) 
+	{
+		std::string name = entry.path().string();
+		Texture texture(name.c_str());
+		textures_map.insert(std::pair<std::string, Texture>(name, texture));
+	}
+        
 
-	TriangleMesh* mesh = new TriangleMesh("horse.obj", Color(1.0, 0.0, 0.0), diffuse);
+	Camera camera(Vec3(0.0, 5, 15.0), Vec3(0.0, 5, 0.0), Vec3(0.0, 6, 15.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+
+	TriangleMesh* mesh = new TriangleMesh("rengar.obj", Color(1.0, 0.0, 0.0), diffuse);
 	scene.push_back(mesh);
 
 
@@ -284,7 +301,7 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 		*pixel = cast_ray(camera_ray, scene, lights);
 	}
 	
-	std::cout << "thread " << th_i << "is finished" << std::endl;
+	std::cout << "thread " << th_i << " is done" << std::endl;
 }
 
 void create_threads(Color *image) 
@@ -297,16 +314,13 @@ void create_threads(Color *image)
 
 	int resolution = WIDTH * HEIGHT;
 
-	int chunk = resolution / no_threads;
-	int rem = resolution % no_threads;
+	int block = resolution / no_threads;
+	int remainder = resolution % no_threads;
 
-	// launch threads
 	for (int i = 0; i < no_threads - 1; i++) 
-	{
-		thread_pool[i] = std::thread(start_thread, i * chunk, (i + 1) * chunk, image, i);
-	}
+		thread_pool[i] = std::thread(start_thread, i * block, (i + 1) * block, image, i);
 
-	start_thread((no_threads - 1) * chunk, (no_threads)*chunk + rem, image, no_threads-1);
+	start_thread((no_threads - 1) * block, (no_threads)*block + remainder, image, no_threads-1);
 
 	for (int i = 0; i < no_threads - 1; i++) thread_pool[i].join();
 
@@ -317,14 +331,6 @@ void setup()
 {
 	Color* image = new Color[WIDTH * HEIGHT];
 
-    std::string path = "textures";
-    for (const auto & entry : fs::directory_iterator(path)) 
-	{
-		std::string name = entry.path().string();
-		Texture texture(name.c_str());
-		textures_map.insert(std::pair<std::string, Texture>(name, texture));
-	}
-        
 	create_threads(image);
 }
 
