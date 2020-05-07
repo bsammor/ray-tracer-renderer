@@ -267,7 +267,7 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 	std::vector<Object*> scene;
 	std::vector<Light> lights;
 
-	Camera camera(Vec3(10, 5, 0.0), Vec3(0.0, 5, 0.0), Vec3(10.0, 6, 0.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(15, 5, 0.0), Vec3(0.0, 5, 0.0), Vec3(15.0, 6, 0.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 
 	TriangleMesh* mesh = new TriangleMesh("horse.obj", Color(1.0, 0.0, 0.0), diffuse);
 	scene.push_back(mesh);
