@@ -7,7 +7,7 @@
 # Compiling
 Requires g++ and Makefile
 
-Install and type "make" in root directory to build
+Type "make" in root directory to compile & build
 
 # Running
  To run the ray tracer, type "make run" or ./tracer
