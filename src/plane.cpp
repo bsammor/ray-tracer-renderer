@@ -1,4 +1,4 @@
-#include "plane.h"
+#include <plane.h>
 
 Plane::Plane()
 {
@@ -44,4 +44,9 @@ bool Plane::intersected(Ray* ray, int index, double &u, double &v, double& t)
 Vec3 Plane::get_normal(Vec3 point)
 {
 	return normal;
+}
+
+void Plane::calculate_bbox() 
+{
+
 }

@@ -10,26 +10,28 @@
 #include <jpeglib.h>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
 #include <thread>
 #include <atomic>
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
-#include "texture.h"
-#include "plane.h"
-#include "sphere.h"
-#include "triangle_mesh.h"
-#include "tiny_obj_loader.h"
-#include "camera.h"
-#include "vec3.h"
-#include "triangle.h"
-
-
+#include <texture.h>
+#include <plane.h>
+#include <sphere.h>
+#include <triangle_mesh.h>
+#include <tiny_obj_loader.h>
+#include <box.h>
+#include <camera.h>
+#include <vec3.h>
+#include <triangle.h>
 #define PI 3.14159265358979323846
 #define BIAS 0.0001; 
+
 std::map<std::string, Texture> textures_map;
 int WIDTH = 640;
 int HEIGHT = 480;
+int totalNumTris = 0;
 
 enum ray_type
 {
@@ -38,7 +40,22 @@ enum ray_type
 
 void save_image(double WIDTH, double HEIGHT, Color* image) 
 {
-	std::ofstream ofs("./scene.ppm", std::ios::out | std::ios::binary);
+	std::string s;
+	int len = 5;
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    for (int i = 0; i < len; ++i) {
+        s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+	const char *temp = s.c_str();
+	char name[25];
+	sprintf(name, "./pictures/%s.ppm", temp);
+
+	std::ofstream ofs(name, std::ios::out | std::ios::binary);
 	ofs << "P6\n" << WIDTH << " " << HEIGHT << "\n255\n";
 	for (int i = 0; i < WIDTH * HEIGHT; ++i) 
 	{
@@ -107,14 +124,16 @@ bool trace(Ray* ray, std::vector<Object*> scene, ray_type type)
 	bool intersected = false;
 	for (unsigned int i = 0; i < scene.size(); i++) 
 	{
-		if (scene[i]->intersected(ray, i, u, v, t))
-		{
-			if (type == shadow && scene[i]->get_material() == reflective_refractive) continue;
-			ray->u = u;
-			ray->v = v;
-			ray->set_tmax(t);
-			ray->set_index(i);
-			intersected = true;
+		if (scene[i]->bbox.intersected(ray)) {
+			if (scene[i]->intersected(ray, i, u, v, t))
+			{
+				if (type == shadow && scene[i]->get_material() == reflective_refractive) continue;
+				ray->u = u;
+				ray->v = v;
+				ray->set_tmax(t);
+				ray->set_index(i);
+				intersected = true;
+			}
 		}
 	}
 
@@ -139,7 +158,7 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 				normal = mesh->tri_fnormal;
 				Vec3 tex = mesh->tri_tex_coordinates;
 
-				Texture tex_image;
+				/*Texture tex_image;
 
 				for (auto x : textures_map) {
 					if (mesh->tex_name == x.first) {
@@ -155,7 +174,6 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 				tex_image.data[(i + j * tex_image.width) * tex_image.channels + 1]/255., 
 				tex_image.data[(i + j * tex_image.width) * tex_image.channels + 2]/255.);
 				 
-				/*//ambient light
 				color += texture * 0.05;
 
 				for (Light light : lights)
@@ -170,34 +188,32 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 				double result = std::max(0.0, normal.dot_product(ray->get_direction() * -1));
 				color += Color(result, result, result);*/
 
-				/*float NdotView = std::max(0.0, normal.dot_product(ray->get_direction() * -1)); 
+				float NdotView = std::max(0.0, normal.dot_product(ray->get_direction() * -1)); 
 				const int M = 10; 
 				float checker = (fmod(tex.x * M, 1.0) > 0.5) ^ (fmod(tex.y * M, 1.0) < 0.5); 
 				float c = 0.3 * (1 - checker) + 0.7 * checker; 
 		
 				double result = c * NdotView;
-				color = Color(result, result, result);*/
+				color = Color(result, result, result);
 				return color;
 			}
 			else if (scene[obj_index]->get_material() == diffuse)
 			{
 				//ambient light
 				color += scene[obj_index]->get_color() * 0.2;
-
-				for (Light light : lights) 
+				/*for (Light light : lights) 
 				{
 					Vec3 light_dir = light.get_direction(point);
 					double r2 = light_dir.dot_product(light_dir);
 					double distance = sqrt(r2);
 					light_dir = light_dir.normalize();
 
-
 					Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance);
 					bool covered = !trace(shadow_ray, scene, shadow);
-
 					color += (scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
-				}
-				return color;
+					
+				}*/
+				return Color(1, 1, 1);
 			}
 			else if (scene[obj_index]->get_material() == reflective)
 			{
@@ -284,10 +300,15 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 	}
         
 
-	Camera camera(Vec3(0.0, 5, 15.0), Vec3(0.0, 5, 0.0), Vec3(0.0, 6, 15.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0.0, 1, 5.0), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 
-	TriangleMesh* mesh = new TriangleMesh("rengar.obj", Color(1.0, 0.0, 0.0), diffuse);
+	TriangleMesh* mesh = new TriangleMesh("teapot.obj", Color(1.0, 0.0, 0.0), diffuse);
+	if (th_i == 0)
+		totalNumTris = mesh->shapes[0].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
+
+	Light light(Vec3(0.0, 0.0, 5.0), Color(1.0, 1.0, 1.0), 100);
+	lights.push_back(light);
 
 
   for (unsigned i = start; i < end; i++) {
@@ -298,10 +319,11 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 		Color* pixel = image + (x + y * WIDTH);
 
 		Ray* camera_ray = camera.create_camera_ray(new_x, new_y);
+		__sync_fetch_and_add(&numPrimaryRays, 1); 
 		*pixel = cast_ray(camera_ray, scene, lights);
 	}
 	
-	std::cout << "thread " << th_i << " is done" << std::endl;
+	//std::cout << "thread " << th_i << " is done" << std::endl;
 }
 
 void create_threads(Color *image) 
@@ -341,6 +363,10 @@ int main()
 	setup();
 	auto timeEnd = std::chrono::high_resolution_clock::now();
 	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
-	fprintf(stderr, "\rDone: %.2f (sec)\n", passedTime / 1000);
+	printf("Render time                                %.2f (sec)\n", passedTime / 1000);
+    printf("Total number of triangles                   : %d\n", totalNumTris); 
+    printf("Total number of primary rays                : %lu\n", numPrimaryRays); 
+    printf("Total number of ray-triangles tests         : %lu\n", numRayTrianglesTests); 
+    printf("Total number of ray-triangles intersections : %lu\n", numRayTrianglesIsect); 
 	return 0;
 }

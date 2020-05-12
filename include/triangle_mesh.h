@@ -5,6 +5,7 @@
 #include "vec3.h"
 #include "vec2.h"
 #include "triangle.h"
+#include "box.h"
 #define TINYOBJLOADER_IMPLEMENTATION 
 
 class TriangleMesh : public Object
@@ -25,6 +26,7 @@ public:
     TriangleMesh(const char* file, Color color, Material material);
     virtual bool intersected(Ray* ray, int index, double& u, double& v, double& tmax);
     virtual Vec3 get_normal(Vec3 point);
+    virtual void calculate_bbox();
 };
 
 #endif

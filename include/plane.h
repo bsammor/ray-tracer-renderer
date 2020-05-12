@@ -13,6 +13,7 @@ public:
 	virtual ~Plane() override {}
 	virtual bool intersected(Ray* ray, int index, double& u, double& v, double& tmax);
 	Vec3 get_normal(Vec3 point);
+	virtual void calculate_bbox();
 };
 
 #endif

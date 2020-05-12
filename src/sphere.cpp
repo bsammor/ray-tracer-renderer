@@ -1,61 +1,58 @@
-#include "light.h"
+#include <sphere.h>
 
-Light::Light()
+Sphere::Sphere()
 {
 	position = Vec3();
-	intensity = 0.0;
+	radius = 0.0;
 	color = Color();
+	material = diffuse;
 }
 
-Light::Light(Vec3 position, Color color, double intensity)
+Sphere::Sphere(Vec3 position, double radius, Color color, Material material)
 {
 	this->position = position;
-	this->intensity = intensity;
+	this->radius = radius;
 	this->color = color;
+	this->material = material;
 }
 
-Vec3 Light::get_position()
+double Sphere::get_radius()
 {
-	return position;
+	return radius;
 }
 
-Color Light::get_color()
-{
-	return color;
-}
-
-bool Light::intersected(Ray* ray, Color* pixel, double radius_squared)
+bool Sphere::intersected(Ray* ray, int index, double& u, double& v, double& t)
 {
 	Vec3 length = ray->get_origin() - position;
 
 	double a = 1;
 	double b = 2 * ray->get_direction().dot_product(length);
-	double c = length.dot_product(length) - radius_squared;
+	double c = length.dot_product(length) - pow(radius, 2);
 
 	double t0 = (-b - std::sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
 	double t1 = (-b + std::sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
 
 	if (t0 > ray->get_tnear() && t0 < ray->get_tmax())
 	{
-		ray->set_tmax(t0);
+		t = t0;
 		return true;
 	}
 	else if (t1 > ray->get_tnear() && t1 < ray->get_tmax())
 	{
-		ray->set_tmax(t1);
+		t = t1;
 		return true;
 	}
 
 	return false;
-
 }
 
-double Light::get_intensity()
+Vec3 Sphere::get_normal(Vec3 point)
 {
-	return intensity;
+	return (point - position).normalize();
 }
 
-Vec3 Light::get_direction(Vec3 P)
+
+void Sphere::calculate_bbox() 
 {
-	return (position - P);
+
 }

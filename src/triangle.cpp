@@ -1,6 +1,9 @@
-#include "triangle.h"
+#include <triangle.h>
 #include <iostream>
 constexpr double BIAS = 1e-8;
+uint64_t numRayTrianglesTests = 0;
+uint64_t numRayTrianglesIsect = 0;
+uint64_t numPrimaryRays = 0;
 
 Triangle::Triangle()
 {
@@ -24,6 +27,7 @@ Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color, Material material)
 
 bool Triangle::intersected(Ray* ray, int index, double& u, double& v, double& t)
 {
+    __sync_fetch_and_add(&numRayTrianglesTests, 1); 
     Vec3 v0v1 = v1 - v0;
     Vec3 v0v2 = v2 - v0;
     Vec3 pvec = ray->get_direction().cross_product(v0v2);
@@ -46,6 +50,7 @@ bool Triangle::intersected(Ray* ray, int index, double& u, double& v, double& t)
 
     if (t < ray->get_tmax()) 
     {
+        __sync_fetch_and_add(&numRayTrianglesIsect, 1); 
         return true;
     }
 
@@ -55,4 +60,9 @@ bool Triangle::intersected(Ray* ray, int index, double& u, double& v, double& t)
 Vec3 Triangle::get_normal(Vec3 point)
 {
     return fn;
+}
+
+void Triangle::calculate_bbox() 
+{
+
 }
