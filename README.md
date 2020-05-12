@@ -6,6 +6,7 @@
 
 # Compiling
 Requires g++ and Makefile
+
 Install and type "make" in root directory to build
 
 # Running
@@ -13,6 +14,8 @@ Install and type "make" in root directory to build
 
 # Triangle Meshes
 The tracer's loader can only load the wavefront or .obj 3d model format (can be adjusted by changing the used loader tiny_obj_loader.h)
+
 Add the required textures in the /textures directory
+
 Place the model and the materials in the root directory
 
