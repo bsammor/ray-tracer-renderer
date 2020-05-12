@@ -47,9 +47,12 @@ void save_image(double WIDTH, double HEIGHT, Color* image)
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
 
+	srand(time(NULL));
     for (int i = 0; i < len; ++i) {
         s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
     }
+
+	s[len] = 0;
 
 	const char *temp = s.c_str();
 	char name[25];
@@ -304,7 +307,7 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 
 	TriangleMesh* mesh = new TriangleMesh("teapot.obj", Color(1.0, 0.0, 0.0), diffuse);
 	if (th_i == 0)
-		totalNumTris = mesh->shapes[0].mesh.num_face_vertices.size();
+		totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
 
 	Light light(Vec3(0.0, 0.0, 5.0), Color(1.0, 1.0, 1.0), 100);
@@ -329,6 +332,7 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 void create_threads(Color *image) 
 {
 	int no_threads = std::thread::hardware_concurrency();
+	std::cout << "-------------------------------------------------------" << std::endl;
 	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;
 	std::cout << "Threads: " << no_threads << std::endl;
 
@@ -368,5 +372,6 @@ int main()
     printf("Total number of primary rays                : %lu\n", numPrimaryRays); 
     printf("Total number of ray-triangles tests         : %lu\n", numRayTrianglesTests); 
     printf("Total number of ray-triangles intersections : %lu\n", numRayTrianglesIsect); 
+	printf("-------------------------------------------------------\n");
 	return 0;
 }

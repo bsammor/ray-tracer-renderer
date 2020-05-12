@@ -103,8 +103,6 @@ Vec3 TriangleMesh::get_normal(Vec3 point)
 
 void TriangleMesh::calculate_bbox() 
 {
-    std::cout << attrib.vertices.size();
-
     for (auto& shape : shapes) 
     {
         for (size_t i = 0; i < shape.mesh.indices.size(); i++) {
