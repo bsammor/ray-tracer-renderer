@@ -143,7 +143,6 @@ bool trace(Ray* ray, std::vector<Object*> scene, ray_type type)
 	return intersected;
 }
 
-
 Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, int depth = 0) 
 {
 	if (depth < 5) 
@@ -289,35 +288,38 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 	return Color();
 }
 
-void start_thread(const unsigned start, const unsigned end, Color *image, int th_i)
-{
-	std::vector<Object*> scene;
-	std::vector<Light> lights;
 
-    std::string path = "textures";
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void create_scene(std::vector<Object*> &scene, std::vector<Light> &lights, int id)
+{	
+	TriangleMesh* mesh = new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse);
+	if (id == 0)
+		totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
+	scene.push_back(mesh);
+
+	Triangle *primitives = mesh->get_triangles();
+}
+
+void load_textures(std::string path) 
+{
     for (const auto & entry : fs::directory_iterator(path)) 
 	{
 		std::string name = entry.path().string();
 		Texture texture(name.c_str());
 		textures_map.insert(std::pair<std::string, Texture>(name, texture));
 	}
-        
+}
 
+void start_thread(const unsigned start, const unsigned end, Color *image, int id)
+{
 	Camera camera(Vec3(0.0, 1, 5.0), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
-
-	TriangleMesh* mesh = new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse);
-	if (th_i == 0)
-		totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
-	scene.push_back(mesh);
-
-	TriangleMesh* mesh1 = new TriangleMesh("teapot2.obj", Color(1.0, 0.0, 0.0), diffuse);
-	if (th_i == 0)
-		totalNumTris += mesh1->shapes[0].mesh.num_face_vertices.size();
-	scene.push_back(mesh1);
-
-	Light light(Vec3(0.0, 0.0, 5.0), Color(1.0, 1.0, 1.0), 100);
-	lights.push_back(light);
-
+	std::vector<Object*> scene;
+	std::vector<Light> lights;
+	create_scene(scene, lights, id);
 
   for (unsigned i = start; i < end; i++) {
 		int x = i % WIDTH;
@@ -330,13 +332,14 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
 		*pixel = cast_ray(camera_ray, scene, lights);
 	}
-	
-	//std::cout << "thread " << th_i << " is done" << std::endl;
 }
 
-void create_threads(Color *image) 
+void create_threads() 
 {
+	Color* image = new Color[WIDTH * HEIGHT];
+	load_textures("textures");
 	int no_threads = std::thread::hardware_concurrency();
+
 	std::cout << "-------------------------------------------------------" << std::endl;
 	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;
 	std::cout << "Threads: " << no_threads << std::endl;
@@ -344,7 +347,6 @@ void create_threads(Color *image)
 	std::thread *thread_pool = new std::thread[no_threads];
 
 	int resolution = WIDTH * HEIGHT;
-
 	int block = resolution / no_threads;
 	int remainder = resolution % no_threads;
 
@@ -353,23 +355,16 @@ void create_threads(Color *image)
 
 	start_thread((no_threads - 1) * block, (no_threads)*block + remainder, image, no_threads-1);
 
-	for (int i = 0; i < no_threads - 1; i++) thread_pool[i].join();
+	for (int i = 0; i < no_threads - 1; i++) 
+		thread_pool[i].join();
 
 	save_image(WIDTH, HEIGHT, image);
 }
 
-void setup() 
-{
-	Color* image = new Color[WIDTH * HEIGHT];
-
-	create_threads(image);
-}
-
-
 int main() 
 {
 	auto timeStart = std::chrono::high_resolution_clock::now();
-	setup();
+	create_threads();
 	auto timeEnd = std::chrono::high_resolution_clock::now();
 	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
 	printf("Render time                                %.2f (sec)\n", passedTime / 1000);

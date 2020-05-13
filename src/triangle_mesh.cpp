@@ -122,3 +122,36 @@ void TriangleMesh::calculate_bbox()
     }
 }
 
+
+Triangle* TriangleMesh::get_triangles() 
+{
+    Triangle* triangles = new Triangle[shapes[0].mesh.num_face_vertices.size()];
+
+    for (auto& shape : shapes) 
+    {
+        size_t index_offset = 0;
+        for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f)
+        {
+            Vec3 vn0, vn1, vn2, vt0, vt1, vt2;
+
+            int fv = shape.mesh.num_face_vertices[f];
+            tinyobj::index_t& idx0 = shape.mesh.indices[index_offset + 0];  // v0
+            tinyobj::index_t& idx1 = shape.mesh.indices[index_offset + 1];  // v1
+            tinyobj::index_t& idx2 = shape.mesh.indices[index_offset + 2];  // v2
+
+            Vec3 v0 = Vec3(attrib.vertices[3 * idx0.vertex_index + 0],
+                attrib.vertices[3 * idx0.vertex_index + 1],
+                attrib.vertices[3 * idx0.vertex_index + 2]);
+            Vec3 v1 = Vec3(attrib.vertices[3 * idx1.vertex_index + 0],
+                attrib.vertices[3 * idx1.vertex_index + 1],
+                attrib.vertices[3 * idx1.vertex_index + 2]);
+            Vec3 v2 = Vec3(attrib.vertices[3 * idx2.vertex_index + 0],
+                attrib.vertices[3 * idx2.vertex_index + 1],
+                attrib.vertices[3 * idx2.vertex_index + 2]);
+            
+            triangles[f] = Triangle(v0, v1, v2, Color(), diffuse);
+            index_offset += fv;
+        }
+    }
+    return triangles;
+}

@@ -64,5 +64,24 @@ Vec3 Triangle::get_normal(Vec3 point)
 
 void Triangle::calculate_bbox() 
 {
+    if ( v0.x < bbox.min.x ) bbox.min.x = v0.x;
+    if ( v0.y < bbox.min.y ) bbox.min.y = v0.y;
+    if ( v0.z < bbox.min.z ) bbox.min.z = v0.z;
+    if ( v0.x > bbox.max.x ) bbox.max.x = v0.x;
+    if ( v0.y > bbox.max.y ) bbox.max.y = v0.y;
+    if ( v0.z > bbox.max.z ) bbox.max.z = v0.z;
 
+    if ( v1.x < bbox.min.x ) bbox.min.x = v1.x;
+    if ( v1.y < bbox.min.y ) bbox.min.y = v1.y;
+    if ( v1.z < bbox.min.z ) bbox.min.z = v1.z;
+    if ( v1.x > bbox.max.x ) bbox.max.x = v1.x;
+    if ( v1.y > bbox.max.y ) bbox.max.y = v1.y;
+    if ( v1.z > bbox.max.z ) bbox.max.z = v1.z;
+
+    if ( v2.x < bbox.min.x ) bbox.min.x = v2.x;
+    if ( v2.y < bbox.min.y ) bbox.min.y = v2.y;
+    if ( v2.z < bbox.min.z ) bbox.min.z = v2.z;
+    if ( v2.x > bbox.max.x ) bbox.max.x = v2.x;
+    if ( v2.y > bbox.max.y ) bbox.max.y = v2.y;
+    if ( v2.z > bbox.max.z ) bbox.max.z = v2.z;
 }

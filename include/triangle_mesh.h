@@ -27,6 +27,7 @@ public:
     virtual bool intersected(Ray* ray, int index, double& u, double& v, double& tmax);
     virtual Vec3 get_normal(Vec3 point);
     virtual void calculate_bbox();
+    Triangle* get_triangles();
 };
 
 #endif
