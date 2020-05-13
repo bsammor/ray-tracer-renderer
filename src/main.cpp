@@ -305,10 +305,15 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int th
 
 	Camera camera(Vec3(0.0, 1, 5.0), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 
-	TriangleMesh* mesh = new TriangleMesh("teapot.obj", Color(1.0, 0.0, 0.0), diffuse);
+	TriangleMesh* mesh = new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse);
 	if (th_i == 0)
 		totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
+
+	TriangleMesh* mesh1 = new TriangleMesh("teapot2.obj", Color(1.0, 0.0, 0.0), diffuse);
+	if (th_i == 0)
+		totalNumTris += mesh1->shapes[0].mesh.num_face_vertices.size();
+	scene.push_back(mesh1);
 
 	Light light(Vec3(0.0, 0.0, 5.0), Color(1.0, 1.0, 1.0), 100);
 	lights.push_back(light);

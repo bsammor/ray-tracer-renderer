@@ -110,49 +110,15 @@ void TriangleMesh::calculate_bbox()
             double x = attrib.vertices[3 * idx0.vertex_index + 0];
             double y = attrib.vertices[3 * idx0.vertex_index + 1];
             double z = attrib.vertices[3 * idx0.vertex_index + 2];
+            Vec3 V(x,y,z);
 
-            bbox.min = Vec3(std::max(bbox.min.x, x), std::max(bbox.min.y, y),std::max(bbox.min.z, z));
-            bbox.max = Vec3(std::max(bbox.max.x, x), std::max(bbox.max.y, y),std::max(bbox.max.z, z));
+            if ( V.x < bbox.min.x ) bbox.min.x = V.x;
+            if ( V.y < bbox.min.y ) bbox.min.y = V.y;
+            if ( V.z < bbox.min.z ) bbox.min.z = V.z;
+            if ( V.x > bbox.max.x ) bbox.max.x = V.x;
+            if ( V.y > bbox.max.y ) bbox.max.y = V.y;
+            if ( V.z > bbox.max.z ) bbox.max.z = V.z;
         }
-
     }
-    /*for (auto& shape : shapes) 
-    {
-        size_t index_offset = 0;
-        for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f)
-        {
-            int fv = shape.mesh.num_face_vertices[f];
-            tinyobj::index_t& idx0 = shape.mesh.indices[index_offset + 0];  // v0
-            tinyobj::index_t& idx1 = shape.mesh.indices[index_offset + 1];  // v1
-            tinyobj::index_t& idx2 = shape.mesh.indices[index_offset + 2];  // v2
-
-            Vec3 v0 = Vec3(attrib.vertices[3 * idx0.vertex_index + 0],
-                attrib.vertices[3 * idx0.vertex_index + 1],
-                attrib.vertices[3 * idx0.vertex_index + 2]);
-            Vec3 v1 = Vec3(attrib.vertices[3 * idx1.vertex_index + 0],
-                attrib.vertices[3 * idx1.vertex_index + 1],
-                attrib.vertices[3 * idx1.vertex_index + 2]);
-            Vec3 v2 = Vec3(attrib.vertices[3 * idx2.vertex_index + 0],
-                attrib.vertices[3 * idx2.vertex_index + 1],
-                attrib.vertices[3 * idx2.vertex_index + 2]);
-
-            if ((v0.x + v0.y + v0.z) > (bbox.max.x + bbox.max.y + bbox.max.z))
-                bbox.max = v0;
-            else if ((v0.x + v0.y + v0.z) < (bbox.min.x + bbox.min.y + bbox.min.z))
-                bbox.min = v0;
-
-            if ((v1.x + v1.y + v1.z) > (bbox.max.x + bbox.max.y + bbox.max.z))
-                bbox.max = v1;
-            else if ((v1.x + v1.y + v1.z) < (bbox.min.x + bbox.min.y + bbox.min.z))
-                bbox.min = v1;
-
-            if ((v2.x + v2.y + v2.z) > (bbox.max.x + bbox.max.y + bbox.max.z))
-                bbox.max = v2;
-            else if ((v2.x + v2.y + v2.z) < (bbox.min.x + bbox.min.y + bbox.min.z))
-                bbox.min = v2;
-
-            index_offset += fv;
-        }
-    }*/
 }
 

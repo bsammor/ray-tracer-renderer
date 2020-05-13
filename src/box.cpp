@@ -5,8 +5,8 @@
 Box::Box() {
     double min_num = std::numeric_limits<double>::lowest();
     double max_num = std::numeric_limits<double>::max();
-    min = Vec3(min_num, min_num, min_num);
-    max = Vec3(max_num, max_num, max_num);
+    min = Vec3(max_num, max_num, max_num);
+    max = Vec3(min_num, min_num, min_num);
 }
 
 Box::Box(Vec3 min, Vec3 max) 
