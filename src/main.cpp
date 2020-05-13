@@ -294,16 +294,6 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void create_scene(std::vector<Object*> &scene, std::vector<Light> &lights, int id)
-{	
-	TriangleMesh* mesh = new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse);
-	if (id == 0)
-		totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
-	scene.push_back(mesh);
-
-	Triangle *primitives = mesh->get_triangles();
-}
-
 void load_textures(std::string path) 
 {
     for (const auto & entry : fs::directory_iterator(path)) 
@@ -312,6 +302,16 @@ void load_textures(std::string path)
 		Texture texture(name.c_str());
 		textures_map.insert(std::pair<std::string, Texture>(name, texture));
 	}
+}
+
+void create_scene(std::vector<Object*> &scene, std::vector<Light> &lights, int id)
+{	
+	TriangleMesh* mesh = new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse);
+	if (id == 0)
+		totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
+	scene.push_back(mesh);
+
+	Triangle *primitives = mesh->get_triangles();
 }
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
