@@ -128,7 +128,7 @@ bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene,
 {
 	double t = 0.0;
 	double u = 0.0;
-	double v = 0.0;
+	double v = 0.0; 
 
 	bool intersected = false;
 	for (unsigned int i = 0; i < scene.size(); i++) 
@@ -312,15 +312,13 @@ void load_textures(std::string path)
 BVH* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
 	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
+	
 	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
-	if (id == 0) totalNumTris += mesh->shapes[1].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
 
-	std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
-	//std::shared_ptr<Sphere> sphere(new Sphere(Vec3(0.0, 0.0, 0.0), 1, Color(1.0, 0.0, 0.0), diffuse));
-	//primitives.push_back(sphere);
+	//std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
 
-	return new BVH(primitives, 1);
+	return NULL;
 }
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
@@ -339,51 +337,8 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		Color* pixel = image + (x + y * WIDTH);
 
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
-
-		bool hit = false;
-		camera_ray->invdir = Vec3(1 / camera_ray->get_direction().x, 1 / camera_ray->get_direction().y, 1 / camera_ray->get_direction().z); 
-        camera_ray->sign[0] = (camera_ray->invdir.x < 0); 
-        camera_ray->sign[1] = (camera_ray->invdir.y < 0); 
-        camera_ray->sign[2] = (camera_ray->invdir.z < 0); 
-		int toVisitOffset = 0, currentNodeIndex = 0;
-		int nodesToVisit[12000];
-		while (true) {
-			linear_BVH_node *node = &(tree->nodes)[currentNodeIndex];
-			if (node->bounds.IntersectP(camera_ray, camera_ray->invdir, camera_ray->sign)) {
-				if (node->nPrimitives > 0) {
-					double u ,v ,t;
-					for (int i = 0; i < node->nPrimitives; ++i)
-						if (tree->primitives[node->primitivesOffset + i]->intersected(camera_ray, node->primitivesOffset + i, u, v, t)) {
-							camera_ray->u = u;
-							camera_ray->v = v;
-							camera_ray->set_tmax(t);
-							camera_ray->set_index(node->primitivesOffset + i);
-							hit = true;
-						}
-					if (toVisitOffset == 0) break;
-					currentNodeIndex = nodesToVisit[--toVisitOffset];
-
-				} else {
-					if (camera_ray->sign[node->axis]) {
-						nodesToVisit[toVisitOffset++] = currentNodeIndex + 1;
-						currentNodeIndex = node->secondChildOffset;
-					} else {
-						nodesToVisit[toVisitOffset++] = node->secondChildOffset;
-						currentNodeIndex = currentNodeIndex + 1;
-					}
-
-				}
-			} else {
-				if (toVisitOffset == 0) break;
-				currentNodeIndex = nodesToVisit[--toVisitOffset];
-			}
-		}
-
-		if (hit) *pixel = Color(1.0, 0.0, 0.0);
-		else *pixel = Color();
-
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
-		//*pixel = cast_ray(camera_ray, scene, lights);
+		*pixel = cast_ray(camera_ray, scene, lights);
 	}
 }
 
@@ -391,7 +346,7 @@ void create_threads()
 {
 	Color* image = new Color[WIDTH * HEIGHT];
 	load_textures("textures");
-	int no_threads = 1;//std::thread::hardware_concurrency();
+	int no_threads = std::thread::hardware_concurrency();
 
 	std::cout << "-------------------------------------------------------" << std::endl;
 	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;

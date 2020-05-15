@@ -23,7 +23,7 @@ public:
 	{
 		return color;
 	}
-	Material get_material() 
+	inline Material get_material() 
 	{
 		return material;
 	}
