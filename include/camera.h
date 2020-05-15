@@ -1,6 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 #include "ray.h"
+#include <memory>
 
 class Camera
 {
@@ -10,7 +11,7 @@ private:
 public:
 	Camera();
 	Camera(Vec3 position, Vec3 target, Vec3 up_guide, double fov, double ratio);
-	Ray* create_camera_ray(double x, double y);
+	std::shared_ptr<Ray> create_camera_ray(double x, double y);
 };
 
 #endif

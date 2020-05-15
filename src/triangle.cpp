@@ -25,7 +25,7 @@ Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color, Material material)
     this->fn = (v1 - v0).cross_product(v2 - v0).normalize();
 }
 
-bool Triangle::intersected(Ray* ray, int index, double& u, double& v, double& t)
+bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t)
 {
     __sync_fetch_and_add(&numRayTrianglesTests, 1); 
     Vec3 v0v1 = v1 - v0;
@@ -62,8 +62,10 @@ Vec3 Triangle::get_normal(Vec3 point)
     return fn;
 }
 
-void Triangle::calculate_bbox() 
+BBOX Triangle::get_bbox() 
 {
+    BBOX bbox;
+
     if ( v0.x < bbox.min.x ) bbox.min.x = v0.x;
     if ( v0.y < bbox.min.y ) bbox.min.y = v0.y;
     if ( v0.z < bbox.min.z ) bbox.min.z = v0.z;
@@ -84,4 +86,6 @@ void Triangle::calculate_bbox()
     if ( v2.x > bbox.max.x ) bbox.max.x = v2.x;
     if ( v2.y > bbox.max.y ) bbox.max.y = v2.y;
     if ( v2.z > bbox.max.z ) bbox.max.z = v2.z;
+
+    return bbox;
 }

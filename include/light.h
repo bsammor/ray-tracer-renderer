@@ -2,6 +2,7 @@
 #define LIGHT_H
 #include "color.h"
 #include "ray.h"
+#include <memory>
 #include <cmath>
 
 class Light
@@ -15,7 +16,7 @@ public:
 	Light(Vec3 position, Color color, double intensity);
 	Vec3 get_position();
 	Color get_color();
-	bool intersected(Ray* ray, Color* pixel, double radius_squared);
+	bool intersected(std::shared_ptr<Ray> ray, std::shared_ptr<Color> pixel, double radius_squared);
 	double get_intensity();
 	Vec3 get_direction(Vec3 P);
 };

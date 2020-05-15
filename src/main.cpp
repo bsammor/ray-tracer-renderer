@@ -6,14 +6,19 @@
 #include <cstdio> 
 #include <cstdlib> 
 #include <map> 
+#include <unistd.h>
 #include <dirent.h>
 #include <jpeglib.h>
+#include <ios>
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
 #include <thread>
 #include <atomic>
+#include <memory>
 #include <experimental/filesystem>
+#include <sys/time.h>
+#include <sys/resource.h>
 namespace fs = std::experimental::filesystem;
 
 #include <texture.h>
@@ -21,10 +26,11 @@ namespace fs = std::experimental::filesystem;
 #include <sphere.h>
 #include <triangle_mesh.h>
 #include <tiny_obj_loader.h>
-#include <box.h>
+#include <bbox.h>
 #include <camera.h>
 #include <vec3.h>
 #include <triangle.h>
+#include <bvh.h>
 #define PI 3.14159265358979323846
 #define BIAS 0.0001; 
 
@@ -74,13 +80,13 @@ double clamp(const double& lo, const double& hi, const double& v)
 	return std::max(lo, std::min(hi, v));
 }
 
-Ray* create_reflection_ray(Ray *camera_ray, Object* obj) 
+std::shared_ptr<Ray> create_reflection_ray(std::shared_ptr<Ray> camera_ray, std::shared_ptr<Object> obj) 
 {
 	Vec3 point = camera_ray->get_intersection_point();
 	Vec3 incidence = camera_ray->get_direction();
 	Vec3 normal = obj->get_normal(point);
 	Vec3 direction = incidence - (normal * 2 * incidence.dot_product(normal));
-	return new Ray(point, direction.normalize(), MINIMUM, INFINITY);
+	return std::shared_ptr<Ray>(new Ray(point, direction.normalize(), MINIMUM, INFINITY));
 }
 
 Vec3 refract(Vec3 I, Vec3 N, double ior)
@@ -118,7 +124,7 @@ double fresnel(Vec3& I, Vec3& N, double ior)
 	return kr;
 }
 
-bool trace(Ray* ray, std::vector<Object*> scene, ray_type type)
+bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene, ray_type type)
 {
 	double t = 0.0;
 	double u = 0.0;
@@ -127,7 +133,8 @@ bool trace(Ray* ray, std::vector<Object*> scene, ray_type type)
 	bool intersected = false;
 	for (unsigned int i = 0; i < scene.size(); i++) 
 	{
-		if (scene[i]->bbox.intersected(ray)) {
+		if (scene[i]->bbox.intersected(ray))
+		{
 			if (scene[i]->intersected(ray, i, u, v, t))
 			{
 				if (type == shadow && scene[i]->get_material() == reflective_refractive) continue;
@@ -143,7 +150,7 @@ bool trace(Ray* ray, std::vector<Object*> scene, ray_type type)
 	return intersected;
 }
 
-Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, int depth = 0) 
+Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene, std::vector<Light> lights, int depth = 0) 
 {
 	if (depth < 5) 
 	{
@@ -156,7 +163,7 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 			double shadow_bias = 1e-8;
 
 			//testing meshes
-			if (TriangleMesh* mesh = dynamic_cast<TriangleMesh*>(scene[obj_index])) {
+			if (std::shared_ptr<TriangleMesh> mesh = std::dynamic_pointer_cast<TriangleMesh>(scene[obj_index])) {
 				normal = mesh->tri_fnormal;
 				Vec3 tex = mesh->tri_tex_coordinates;
 
@@ -219,7 +226,7 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 			}
 			else if (scene[obj_index]->get_material() == reflective)
 			{
-				Ray* reflection_ray = create_reflection_ray(ray, scene[obj_index]);
+				std::shared_ptr<Ray> reflection_ray = create_reflection_ray(ray, scene[obj_index]);
 				color += cast_ray(reflection_ray, scene, lights, depth + 1);
 
 				if (color.r < 0.1 && color.g < 0.1 && color.b < 0.1) {
@@ -243,14 +250,14 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 					Vec3 refraction_direction = refract(dir, normal, scene[obj_index]->get_ior()).normalize();
 					Vec3 refrection_origin = outside ? point - bias : point + bias;
 
-					Ray* refraction_ray = new Ray(refrection_origin, refraction_direction, MINIMUM, INFINITY);
+					std::shared_ptr<Ray> refraction_ray = std::shared_ptr<Ray>(new Ray(refrection_origin, refraction_direction, MINIMUM, INFINITY));
 					refraction_color = cast_ray(refraction_ray, scene, lights, depth + 1);
 				}
 
-				Ray* reflection_ray = create_reflection_ray(ray, scene[obj_index]);
+				std::shared_ptr<Ray> reflection_ray = create_reflection_ray(ray, scene[obj_index]);
 				Vec3 reflection_direction = reflection_ray->get_direction();
 				Vec3 reflection_origin = outside ? point + bias : point - bias;
-				Ray* test = new Ray(reflection_origin, reflection_direction, MINIMUM, INFINITY);
+				std::shared_ptr<Ray> test = std::shared_ptr<Ray>(new Ray(reflection_origin, reflection_direction, MINIMUM, INFINITY));
 				reflection_color = cast_ray(test, scene, lights, depth + 1);
 
 				// mix the two
@@ -269,7 +276,7 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 					light_dir = light_dir.normalize();
 
 
-					Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance);
+					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
 					bool covered = !trace(shadow_ray, scene, shadow);
 
 					diffuse += (scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
@@ -288,12 +295,6 @@ Color cast_ray(Ray* ray, std::vector<Object*> scene, std::vector<Light> lights, 
 	return Color();
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 void load_textures(std::string path) 
 {
     for (const auto & entry : fs::directory_iterator(path)) 
@@ -304,33 +305,85 @@ void load_textures(std::string path)
 	}
 }
 
-void create_scene(std::vector<Object*> &scene, std::vector<Light> &lights, int id)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+BVH* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
-	TriangleMesh* mesh = new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse);
-	if (id == 0)
-		totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
+	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
+	if (id == 0) totalNumTris += mesh->shapes[1].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
 
-	Triangle *primitives = mesh->get_triangles();
+	std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
+	//std::shared_ptr<Sphere> sphere(new Sphere(Vec3(0.0, 0.0, 0.0), 1, Color(1.0, 0.0, 0.0), diffuse));
+	//primitives.push_back(sphere);
+
+	return new BVH(primitives, 1);
 }
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	Camera camera(Vec3(0.0, 1, 5.0), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
-	std::vector<Object*> scene;
+	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
-	create_scene(scene, lights, id);
-
-  for (unsigned i = start; i < end; i++) {
+	BVH *tree = create_scene(scene, lights, id);
+	
+	for (unsigned i = start; i < end; i++) 
+  	{
 		int x = i % WIDTH;
 		int y = i / WIDTH;
 		double new_x = (2.0 * x) / WIDTH - 1.0;
 		double new_y = (-2.0 * y) / HEIGHT + 1.0;
 		Color* pixel = image + (x + y * WIDTH);
 
-		Ray* camera_ray = camera.create_camera_ray(new_x, new_y);
+		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
+
+		bool hit = false;
+		camera_ray->invdir = Vec3(1 / camera_ray->get_direction().x, 1 / camera_ray->get_direction().y, 1 / camera_ray->get_direction().z); 
+        camera_ray->sign[0] = (camera_ray->invdir.x < 0); 
+        camera_ray->sign[1] = (camera_ray->invdir.y < 0); 
+        camera_ray->sign[2] = (camera_ray->invdir.z < 0); 
+		int toVisitOffset = 0, currentNodeIndex = 0;
+		int nodesToVisit[12000];
+		while (true) {
+			linear_BVH_node *node = &(tree->nodes)[currentNodeIndex];
+			if (node->bounds.IntersectP(camera_ray, camera_ray->invdir, camera_ray->sign)) {
+				if (node->nPrimitives > 0) {
+					double u ,v ,t;
+					for (int i = 0; i < node->nPrimitives; ++i)
+						if (tree->primitives[node->primitivesOffset + i]->intersected(camera_ray, node->primitivesOffset + i, u, v, t)) {
+							camera_ray->u = u;
+							camera_ray->v = v;
+							camera_ray->set_tmax(t);
+							camera_ray->set_index(node->primitivesOffset + i);
+							hit = true;
+						}
+					if (toVisitOffset == 0) break;
+					currentNodeIndex = nodesToVisit[--toVisitOffset];
+
+				} else {
+					if (camera_ray->sign[node->axis]) {
+						nodesToVisit[toVisitOffset++] = currentNodeIndex + 1;
+						currentNodeIndex = node->secondChildOffset;
+					} else {
+						nodesToVisit[toVisitOffset++] = node->secondChildOffset;
+						currentNodeIndex = currentNodeIndex + 1;
+					}
+
+				}
+			} else {
+				if (toVisitOffset == 0) break;
+				currentNodeIndex = nodesToVisit[--toVisitOffset];
+			}
+		}
+
+		if (hit) *pixel = Color(1.0, 0.0, 0.0);
+		else *pixel = Color();
+
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
-		*pixel = cast_ray(camera_ray, scene, lights);
+		//*pixel = cast_ray(camera_ray, scene, lights);
 	}
 }
 
@@ -338,7 +391,7 @@ void create_threads()
 {
 	Color* image = new Color[WIDTH * HEIGHT];
 	load_textures("textures");
-	int no_threads = std::thread::hardware_concurrency();
+	int no_threads = 1;//std::thread::hardware_concurrency();
 
 	std::cout << "-------------------------------------------------------" << std::endl;
 	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;

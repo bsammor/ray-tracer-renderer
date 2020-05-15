@@ -47,6 +47,8 @@
         "typeinfo": "cpp",
         "codecvt": "cpp",
         "filesystem": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "cinttypes": "cpp",
+        "list": "cpp"
     }
 }

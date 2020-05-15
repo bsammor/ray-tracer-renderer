@@ -24,7 +24,7 @@ Color Light::get_color()
 	return color;
 }
 
-bool Light::intersected(Ray* ray, Color* pixel, double radius_squared)
+bool Light::intersected(std::shared_ptr<Ray> ray, std::shared_ptr<Color> pixel, double radius_squared)
 {
 	Vec3 length = ray->get_origin() - position;
 

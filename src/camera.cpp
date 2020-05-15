@@ -17,10 +17,10 @@ Camera::Camera(Vec3 position, Vec3 look_at, Vec3 up_guide, double fov, double ra
 	world_width = ratio * world_height;
 }
 
-Ray* Camera::create_camera_ray(double x, double y)
+std::shared_ptr<Ray> Camera::create_camera_ray(double x, double y)
 {
 	Vec3 result1 = right * world_width * x;
 	Vec3 result2 = up * world_height * y;
 	Vec3 ray_dir = forward + result1 + result2;
-	return new Ray(this->position, ray_dir.normalize(), MINIMUM, INFINITY);
+	return  std::shared_ptr<Ray>(new Ray(this->position, ray_dir.normalize(), MINIMUM, INFINITY));
 }

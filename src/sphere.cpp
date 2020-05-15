@@ -1,4 +1,5 @@
 #include <sphere.h>
+#include <iostream>
 
 Sphere::Sphere()
 {
@@ -21,7 +22,7 @@ double Sphere::get_radius()
 	return radius;
 }
 
-bool Sphere::intersected(Ray* ray, int index, double& u, double& v, double& t)
+bool Sphere::intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t)
 {
 	Vec3 length = ray->get_origin() - position;
 
@@ -52,7 +53,10 @@ Vec3 Sphere::get_normal(Vec3 point)
 }
 
 
-void Sphere::calculate_bbox() 
+BBOX Sphere::get_bbox() 
 {
-
+	BBOX bbox;
+	bbox.min = Vec3(position.x - radius, position.y - radius, position.z - radius);
+	bbox.min = Vec3(position.x + radius, position.y + radius, position.z + radius);
+	return bbox;
 }

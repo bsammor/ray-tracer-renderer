@@ -126,11 +126,3 @@ Vec3 Vec3::operator/=(double scalar)
 	z /= scalar;
 	return *this;
 }
-
-Vec3 Vec3::operator/=(Vec3 v1)
-{
-	x /= v1.x;
-	y /= v1.y;
-	z /= v1.z;
-	return *this;
-}

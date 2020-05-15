@@ -17,7 +17,7 @@ Plane::Plane(Vec3 position, Vec3 direction, Color color, Material material)
 }
 
 
-bool Plane::intersected(Ray* ray, int index, double &u, double &v, double& t)
+bool Plane::intersected(std::shared_ptr<Ray> ray, int index, double &u, double &v, double& t)
 {
 	// First, check if we intersect
 	double dDotN = ray->get_direction().dot_product(normal);
@@ -46,7 +46,7 @@ Vec3 Plane::get_normal(Vec3 point)
 	return normal;
 }
 
-void Plane::calculate_bbox() 
+BBOX Plane::get_bbox() 
 {
-
+	return BBOX();
 }

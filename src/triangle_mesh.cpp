@@ -22,10 +22,10 @@ TriangleMesh::TriangleMesh(const char* file, Color color, Material material)
 
     this->color = color;
     this->material = material;
-    this->calculate_bbox();
+    this->bbox = this->get_bbox();
 }
 
-bool TriangleMesh::intersected(Ray* ray, int index, double& u, double& v, double& t)
+bool TriangleMesh::intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t)
 {
     bool polygon_hit = false;
     for (auto& shape : shapes) 
@@ -101,8 +101,9 @@ Vec3 TriangleMesh::get_normal(Vec3 point)
     return tri_vnormal;
 }
 
-void TriangleMesh::calculate_bbox() 
+BBOX TriangleMesh::get_bbox()
 {
+    BBOX bbox;
     for (auto& shape : shapes) 
     {
         for (size_t i = 0; i < shape.mesh.indices.size(); i++) {
@@ -120,12 +121,13 @@ void TriangleMesh::calculate_bbox()
             if ( V.z > bbox.max.z ) bbox.max.z = V.z;
         }
     }
+    return bbox;
 }
 
 
-Triangle* TriangleMesh::get_triangles() 
+std::vector<std::shared_ptr<Object>> TriangleMesh::get_triangles() 
 {
-    Triangle* triangles = new Triangle[shapes[0].mesh.num_face_vertices.size()];
+    std::vector<std::shared_ptr<Object>> triangles;
 
     for (auto& shape : shapes) 
     {
@@ -148,8 +150,8 @@ Triangle* TriangleMesh::get_triangles()
             Vec3 v2 = Vec3(attrib.vertices[3 * idx2.vertex_index + 0],
                 attrib.vertices[3 * idx2.vertex_index + 1],
                 attrib.vertices[3 * idx2.vertex_index + 2]);
-            
-            triangles[f] = Triangle(v0, v1, v2, Color(), diffuse);
+
+            triangles.push_back(std::shared_ptr<Object>(new Triangle(v0, v1, v2, Color(), diffuse)));
             index_offset += fv;
         }
     }

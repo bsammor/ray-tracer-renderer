@@ -1,7 +1,9 @@
-#include <cstdlib>
-#include <cstdio>
+#ifndef TEXTURE_H
+#define TEXTURE_H
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <cstdlib>
+#include <cstdio>
 
 class Texture {
     public:
@@ -21,4 +23,6 @@ class Texture {
 
     }
 };
+
+#endif
 
