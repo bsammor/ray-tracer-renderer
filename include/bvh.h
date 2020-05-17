@@ -237,4 +237,47 @@ public:
     }
 };
 
+bool intersected_BVH(std::shared_ptr<Ray> camera_ray, std::shared_ptr<BVH> tree) 
+{
+bool hit = false;
+		camera_ray->invdir = Vec3(1 / camera_ray->get_direction().x, 1 / camera_ray->get_direction().y, 1 / camera_ray->get_direction().z); 
+        camera_ray->sign[0] = (camera_ray->invdir.x < 0); 
+        camera_ray->sign[1] = (camera_ray->invdir.y < 0); 
+        camera_ray->sign[2] = (camera_ray->invdir.z < 0); 
+		int toVisitOffset = 0, currentNodeIndex = 0;
+		int nodesToVisit[12000];
+		while (true) {
+			linear_BVH_node *node = &(tree->nodes)[currentNodeIndex];
+			if (node->bounds.IntersectP(camera_ray, camera_ray->invdir, camera_ray->sign)) {
+				if (node->nPrimitives > 0) {
+					double u ,v ,t;
+					for (int i = 0; i < node->nPrimitives; ++i)
+						if (tree->primitives[node->primitivesOffset + i]->intersected(camera_ray, node->primitivesOffset + i, u, v, t)) {
+							camera_ray->u = u;
+							camera_ray->v = v;
+							camera_ray->set_tmax(t);
+							camera_ray->set_index(node->primitivesOffset + i);
+							hit = true;
+						}
+					if (toVisitOffset == 0) break;
+					currentNodeIndex = nodesToVisit[--toVisitOffset];
+
+				} else {
+					if (camera_ray->sign[node->axis]) {
+						nodesToVisit[toVisitOffset++] = currentNodeIndex + 1;
+						currentNodeIndex = node->secondChildOffset;
+					} else {
+						nodesToVisit[toVisitOffset++] = node->secondChildOffset;
+						currentNodeIndex = currentNodeIndex + 1;
+					}
+
+				}
+			} else {
+				if (toVisitOffset == 0) break;
+				currentNodeIndex = nodesToVisit[--toVisitOffset];
+			}
+		}
+    return hit;
+}
+
 #endif

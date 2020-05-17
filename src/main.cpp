@@ -311,7 +311,7 @@ void load_textures(std::string path)
 
 BVH* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse));
 	
 	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
