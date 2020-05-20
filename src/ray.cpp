@@ -17,19 +17,9 @@ Ray::Ray(Vec3 origin, Vec3 direction, double tnear, double tmax)
 	this->tmax = tmax;
 }
 
-Vec3 Ray::get_origin()
-{
-	return origin;
-}
-
 void Ray::set_tmax(double z)
 {
 	tmax = z;
-}
-
-double Ray::get_tmax()
-{
-	return tmax;
 }
 
 void Ray::set_index(int i)
@@ -40,11 +30,6 @@ void Ray::set_index(int i)
 int Ray::get_index()
 {
 	return obj_index;
-}
-
-Vec3 Ray::get_direction()
-{
-	return direction;
 }
 
 Vec3 Ray::get_intersection_point()

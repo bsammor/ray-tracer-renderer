@@ -87,6 +87,14 @@ Vec3 Vec3::operator-(Vec3 v1)
 	return Vec3(new_x, new_y, new_z);
 }
 
+Vec3 Vec3::operator-(Vec3 v1) const
+{
+	double new_x = x - v1.x;
+	double new_y = y - v1.y;
+	double new_z = z - v1.z;
+	return Vec3(new_x, new_y, new_z);
+}
+
 Vec3 Vec3::operator-=(Vec3 v1)
 {
 	x -= v1.x;

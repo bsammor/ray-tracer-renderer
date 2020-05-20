@@ -27,6 +27,7 @@ namespace fs = std::experimental::filesystem;
 #include <triangle_mesh.h>
 #include <tiny_obj_loader.h>
 #include <bbox.h>
+#include <kdtree.h>
 #include <camera.h>
 #include <vec3.h>
 #include <triangle.h>
@@ -38,6 +39,7 @@ std::map<std::string, Texture> textures_map;
 int WIDTH = 640;
 int HEIGHT = 480;
 int totalNumTris = 0;
+KdTreeAccel *tree;
 
 enum ray_type
 {
@@ -164,8 +166,8 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 
 			//testing meshes
 			if (std::shared_ptr<TriangleMesh> mesh = std::dynamic_pointer_cast<TriangleMesh>(scene[obj_index])) {
-				normal = mesh->tri_fnormal;
-				Vec3 tex = mesh->tri_tex_coordinates;
+				//normal = mesh->tri_fnormal;
+				//Vec3 tex = mesh->tri_tex_coordinates;
 
 				/*Texture tex_image;
 
@@ -197,13 +199,14 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 				double result = std::max(0.0, normal.dot_product(ray->get_direction() * -1));
 				color += Color(result, result, result);*/
 
-				float NdotView = std::max(0.0, normal.dot_product(ray->get_direction() * -1)); 
+				/*float NdotView = std::max(0.0, normal.dot_product(ray->get_direction() * -1)); 
 				const int M = 10; 
 				float checker = (fmod(tex.x * M, 1.0) > 0.5) ^ (fmod(tex.y * M, 1.0) < 0.5); 
 				float c = 0.3 * (1 - checker) + 0.7 * checker; 
 		
 				double result = c * NdotView;
-				color = Color(result, result, result);
+				color = Color(result, result, result);*/
+				color = Color(0,0,1);
 				return color;
 			}
 			else if (scene[obj_index]->get_material() == diffuse)
@@ -309,25 +312,22 @@ void load_textures(std::string path)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BVH* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
+KdTreeAccel* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("teapot1.obj", Color(1.0, 0.0, 0.0), diffuse));
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
 	
 	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
 
-	//std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
-
-	return NULL;
+	std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
+	return new KdTreeAccel(primitives);
+	//return nullptr;
 }
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	Camera camera(Vec3(0.0, 1, 5.0), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
-	std::vector<std::shared_ptr<Object>> scene;
-	std::vector<Light> lights;
-	BVH *tree = create_scene(scene, lights, id);
-	
+
 	for (unsigned i = start; i < end; i++) 
   	{
 		int x = i % WIDTH;
@@ -338,13 +338,22 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
-		*pixel = cast_ray(camera_ray, scene, lights);
+		if (tree->Intersect(camera_ray))
+			*pixel = Color(0,0,1);
+		else
+			*pixel = Color(1,0,0);
+		
+		//if (!tree)
+		//*pixel = cast_ray(camera_ray, scene, lights);
 	}
 }
 
 void create_threads() 
 {
 	Color* image = new Color[WIDTH * HEIGHT];
+	std::vector<std::shared_ptr<Object>> scene;
+	std::vector<Light> lights;
+	tree = create_scene(scene, lights, 0);
 	load_textures("textures");
 	int no_threads = std::thread::hardware_concurrency();
 

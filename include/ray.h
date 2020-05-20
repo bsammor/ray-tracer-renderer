@@ -11,12 +11,12 @@ private:
 public:
 	Ray();
 	Ray(Vec3 origin, Vec3 direction, double tnear, double tmax);
-	Vec3 get_origin();
+	inline Vec3 get_origin() {return origin;}
 	void set_tmax(double point);
-	Vec3 get_direction();
+	inline Vec3 get_direction() {return direction;}
 	Vec3 get_intersection_point();
 	double get_tnear();
-	double get_tmax();
+	inline double get_tmax() {return tmax;}
 	void set_index(int i);
 	int get_index();
 
