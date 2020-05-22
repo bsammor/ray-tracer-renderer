@@ -50,6 +50,7 @@ bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, doubl
 
     if (t < ray->get_tmax()) 
     {
+        ray->fn = this->fn;
         __sync_fetch_and_add(&numRayTrianglesIsect, 1); 
         return true;
     }

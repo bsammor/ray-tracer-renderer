@@ -1,6 +1,6 @@
 #ifndef RAY_H
 #define RAY_H
-#include "vec3.h"
+#include <vec3.h>
 
 class Ray
 {
@@ -23,6 +23,7 @@ public:
 	double u = 0.0, v = 0.0;
 	Vec3 invdir; 
     int sign[3]; 
+	Vec3 fn;
 };
 
 #endif

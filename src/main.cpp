@@ -314,7 +314,7 @@ void load_textures(std::string path)
 
 KdTreeAccel* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("low-dragon.obj", Color(1.0, 0.0, 0.0), diffuse));
 	
 	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
 	scene.push_back(mesh);
@@ -326,7 +326,11 @@ KdTreeAccel* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vect
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
-	Camera camera(Vec3(0.0, 1, 5.0), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5.0), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	/*std::vector<std::shared_ptr<Object>> scene;
+	std::vector<Light> lights;
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("low-dragon.obj", Color(1.0, 0.0, 0.0), diffuse));
+	scene.push_back(mesh);*/
 
 	for (unsigned i = start; i < end; i++) 
   	{
@@ -339,11 +343,13 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
 		if (tree->Intersect(camera_ray))
-			*pixel = Color(0,0,1);
+		{
+			//double result = std::max(0.0, camera_ray->fn.dot_product(camera_ray->get_direction() ));
+			//*pixel = Color(result, result, result);
+			*pixel = Color(0.0, 1, 0.0);
+		}
 		else
-			*pixel = Color(1,0,0);
-		
-		//if (!tree)
+			*pixel = Color(0,0,0);
 		//*pixel = cast_ray(camera_ray, scene, lights);
 	}
 }

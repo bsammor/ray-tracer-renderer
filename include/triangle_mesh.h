@@ -24,9 +24,9 @@ public:
 
 public: 
     TriangleMesh(const char* file, Color color, Material material);
-    virtual bool intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& tmax);
-    virtual Vec3 get_normal(Vec3 point);
-    virtual BBOX get_bbox();
+    bool intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& tmax);
+    Vec3 get_normal(Vec3 point);
+    BBOX get_bbox();
     std::vector<std::shared_ptr<Object>> get_triangles();
 };
 
