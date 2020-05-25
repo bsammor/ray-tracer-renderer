@@ -8,6 +8,7 @@ private:
 public:
 	Color();
 	Color(double r, double g, double b);
+	Color(double c);
 
 	Color operator*(Color c1);
 	Color operator*(double scalar);

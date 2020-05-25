@@ -16,8 +16,7 @@ public:
 	void expand(Vec3 p);
 	void expand(BBOX b);
 	bool intersected (std::shared_ptr<Ray> ray);
-	Vec3 diagonal() const;
-	int maximum_extent();
+	Vec3 diagonal() const;;
 	Vec3 get_center();
 	double surface_area() const;
 	int MaximumExtent() const;

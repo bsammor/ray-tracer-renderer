@@ -24,9 +24,10 @@ public:
 
 public: 
     TriangleMesh(const char* file, Color color, Material material);
-    bool intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& tmax);
-    Vec3 get_normal(Vec3 point);
-    BBOX get_bbox();
+    bool intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& tmax) override;
+    bool intersectedP(std::shared_ptr<Ray> ray) const override;
+    Vec3 get_normal(Vec3 point) override;
+    BBOX get_bbox() override;
     std::vector<std::shared_ptr<Object>> get_triangles();
 };
 

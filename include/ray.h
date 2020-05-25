@@ -21,6 +21,7 @@ public:
 	int get_index();
 
 	double u = 0.0, v = 0.0;
+	int intersections = 0;
 	Vec3 invdir; 
     int sign[3]; 
 	Vec3 fn;

@@ -10,6 +10,7 @@ public:
 
 	Vec3();
 	Vec3(double a, double b, double c);
+	Vec3(double x);
 	double magnitude();
 	double squared_magnitude();
 	Vec3 normalize();

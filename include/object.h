@@ -16,6 +16,7 @@ public:
 	Material material;
 	double ior = 1.1;
 	virtual bool intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t) = 0;
+	virtual bool intersectedP(std::shared_ptr<Ray> ray) const = 0;
 	virtual Vec3 get_normal(Vec3 point) = 0;
 	virtual BBOX get_bbox() = 0;
 	Color get_color() 
