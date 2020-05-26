@@ -157,3 +157,8 @@ std::vector<std::shared_ptr<Object>> TriangleMesh::get_triangles()
     }
     return triangles;
 }
+
+bool TriangleMesh::intersectedP(std::shared_ptr<Ray> ray) const
+{
+    return false;
+}

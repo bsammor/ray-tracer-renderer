@@ -192,6 +192,7 @@ bool BVHAccel::Intersect(std::shared_ptr<Ray> ray) const {
                          for (int i = 0; i < node->nPrimitives; ++i) 
                             {
                                 double u, v, t;
+                                ray->intersections++;
                                 if (primitives[node->primitivesOffset + i]->intersected(ray, node->primitivesOffset + i, u, v, t))
                                  hit = true;
                             }

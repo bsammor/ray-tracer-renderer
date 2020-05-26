@@ -50,3 +50,8 @@ BBOX Plane::get_bbox()
 {
 	return BBOX();
 }
+
+bool Plane::intersectedP(std::shared_ptr<Ray> ray) const
+{
+    return false;
+}

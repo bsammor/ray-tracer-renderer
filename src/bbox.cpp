@@ -82,17 +82,6 @@ Vec3 BBOX::diagonal() const
     return max - min; 
 }
 
-int BBOX::maximum_extent() 
-{
-    Vec3 d = diagonal();
-    if (d.x > d.y && d.x > d.z)
-        return 0;
-    else if (d.y > d.z)
-        return 1;
-    else
-        return 2;
-}
-
 Vec3 BBOX::offset(Vec3 &p) const 
 {
     Vec3 o = p - min;

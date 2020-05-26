@@ -14,6 +14,14 @@ Color::Color(double r, double g, double b)
 	this->b = b;
 }
 
+Color::Color(double c)
+{
+	this->r = c;
+	this->g = c;
+	this->b = c;
+}
+
+
 Color Color::operator*(Color c1)
 {
 	return Color(r * c1.r, g * c1.g, b * c1.b);

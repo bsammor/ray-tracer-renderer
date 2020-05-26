@@ -51,6 +51,7 @@ bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, doubl
     if (t < ray->get_tmax()) 
     {
         ray->fn = this->fn;
+        ray->set_tmax(t);
         __sync_fetch_and_add(&numRayTrianglesIsect, 1); 
         return true;
     }
@@ -89,4 +90,9 @@ BBOX Triangle::get_bbox()
     if ( v2.z > bbox.max.z ) bbox.max.z = v2.z;
 
     return bbox;
+}
+
+bool Triangle::intersectedP(std::shared_ptr<Ray> ray) const
+{
+    return false;
 }

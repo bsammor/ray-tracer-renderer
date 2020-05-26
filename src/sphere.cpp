@@ -60,3 +60,8 @@ BBOX Sphere::get_bbox()
 	bbox.min = Vec3(position.x + radius, position.y + radius, position.z + radius);
 	return bbox;
 }
+
+bool Sphere::intersectedP(std::shared_ptr<Ray> ray) const
+{
+	return false;
+}

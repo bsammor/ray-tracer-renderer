@@ -233,6 +233,7 @@ bool KdTreeAccel::Intersect(std::shared_ptr<Ray> ray) const {
                       const std::shared_ptr<Object> &p = primitives[node->onePrimitive];
                       //<<Check one primitive inside leaf node>> 
                          double u, v, t;
+                         ray->intersections++;
                          if (p->intersected(ray, node->onePrimitive, u, v, t)) 
                              hit = true;
 
@@ -242,6 +243,7 @@ bool KdTreeAccel::Intersect(std::shared_ptr<Ray> ray) const {
                           const std::shared_ptr<Object> &p = primitives[index];
                           //<<Check one primitive inside leaf node>> 
                              double u, v, t;
+                             ray->intersections++;
                              if (p->intersected(ray, index, u, v, t)) 
                                  hit = true;
 

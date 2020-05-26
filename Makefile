@@ -26,7 +26,7 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@echo "Compiled "$<" successfully!"
 
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 .PHONY: clean
 clean:
