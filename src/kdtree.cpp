@@ -172,7 +172,7 @@ void KdTreeAccel::buildTree(int nodeNum, const BBOX &nodeBounds,
                     depth - 1, edges, prims0, prims1 + nPrimitives, badRefines);
 }
 
-bool KdTreeAccel::Intersect(std::shared_ptr<Ray> ray) const {
+bool KdTreeAccel::intersect_tree(std::shared_ptr<Ray> ray) const {
     //<<Compute initial parametric range of ray inside kd-tree extent>> 
        double tMin, tMax;
        if (!bounds.IntersectP(ray, &tMin, &tMax)) 

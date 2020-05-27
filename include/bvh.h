@@ -5,6 +5,7 @@
 #include <memory>
 #include <object.h>
 #include <bbox.h>
+#include <tree.h>
 #include <atomic>
 #include <algorithm>
 
@@ -49,13 +50,14 @@ struct LinearBVHNode {
 
 
 // BVHAccel Declarations
-class BVHAccel {
+class BVHAccel : public Tree
+{
   public:
     // BVHAccel Public Methods
     BVHAccel(std::vector<std::shared_ptr<Object>> p,
              int maxPrimsInNode = 1);
     BBOX WorldBound() const;
-    bool Intersect(std::shared_ptr<Ray> ray) const;
+    bool intersect_tree(std::shared_ptr<Ray> ray) const;
     bool IntersectP(std::shared_ptr<Ray> ray) const;
 
   private:

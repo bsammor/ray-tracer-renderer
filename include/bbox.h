@@ -36,9 +36,10 @@ public:
 		// Check for ray intersection against $x$ and $y$ slabs
 		double tMin = (bounds[dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
 		double tMax = (bounds[1 - dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
+		tmin = tMin;
+		tmax = tMax;
 		double tyMin = (bounds[dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
 		double tyMax = (bounds[1 - dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
-
 		// Update _tMax_ and _tyMax_ to ensure robust bounds intersection
 		tMax *= 1 + 2 * gamma(3);
         tyMax *= 1 + 2 * gamma(3);
@@ -81,7 +82,26 @@ public:
 		return true;
 	}
 
+	///////////////////////////////TEMP///////////////////////////////////
+	float dx() const {
+        return max.x - min.x;
+    };
+    float dy() const {
+        return max.y - min.y;
+    };
+    float dz() const {
+        return max.z - min.z;
+    };
+    float d(int axis) const {
+        return max[axis] - min[axis];
+    }
+    float isPlanar(){
+        return dx() <= 0.01 || dy() <= 0.01 || dz() <= 0.01;
+    }
+	///////////////////////////////////////////////////////////////////////
+
     Vec3 min, max;
+	mutable double tmin, tmax;
 };
 
 #endif

@@ -28,6 +28,15 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 run: $(TARGET)
 	./$(TARGET) && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
+run-kd: $(TARGET)
+	./$(TARGET) "kd" && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+
+run-bvh: $(TARGET)
+	./$(TARGET) "bvh" && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+
+run-octree: $(TARGET)
+	./$(TARGET) "octree" && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+
 .PHONY: clean
 clean:
 	@$(rm) $(OBJECTS)

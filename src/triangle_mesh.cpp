@@ -3,7 +3,8 @@
 TriangleMesh::TriangleMesh(const char* file, Color color, Material material)
 {
 	std::string inputfile = file;
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, inputfile.c_str());
+    std::string mat_dir = "models";
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, inputfile.c_str(), mat_dir.c_str());
 
 	if (!warn.empty()) 
     {

@@ -34,17 +34,22 @@ namespace fs = std::experimental::filesystem;
 #include <bvh.h>
 #define PI 3.14159265358979323846
 #define BIAS 0.0001; 
+enum ray_type
+{
+	shadow, camera
+};
+
+enum accel_struct
+{
+	kd, bvh, octree, none
+};
 
 std::map<std::string, Texture> textures_map;
 int WIDTH = 640;
 int HEIGHT = 480;
 int totalNumTris = 0;
-KdTreeAccel *tree;
-
-enum ray_type
-{
-	shadow, camera
-};
+accel_struct tree_type = none;
+Tree *tree;
 
 void save_image(double WIDTH, double HEIGHT, Color* image) 
 {
@@ -213,19 +218,19 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 			{
 				//ambient light
 				color += scene[obj_index]->get_color() * 0.2;
-				/*for (Light light : lights) 
+				for (Light light : lights) 
 				{
 					Vec3 light_dir = light.get_direction(point);
 					double r2 = light_dir.dot_product(light_dir);
 					double distance = sqrt(r2);
 					light_dir = light_dir.normalize();
 
-					Ray* shadow_ray = new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance);
+					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
 					bool covered = !trace(shadow_ray, scene, shadow);
 					color += (scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
 					
-				}*/
-				return Color(1, 1, 1);
+				}
+				return color;
 			}
 			else if (scene[obj_index]->get_material() == reflective)
 			{
@@ -312,16 +317,21 @@ void load_textures(std::string path)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-KdTreeAccel* create_scene(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
+Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
-	
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
 	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
-	scene.push_back(mesh);
 
 	std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
-	return new KdTreeAccel(primitives);
-	//return nullptr;
+
+	switch (tree_type)
+	{
+		case kd: return new KdTreeAccel(primitives);
+		case bvh: return new BVHAccel(primitives);
+		case octree: return nullptr;
+		case none: return nullptr;
+	}
+	return nullptr;
 }
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
@@ -331,11 +341,11 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
-	//std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(0.0, 2, 0.0), 0.5, Color(1), diffuse));
-	//scene.push_back(sphere);
+	std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(0.0, 2, 0.0), 0.5, Color(0.03, 0.75, 0.83), diffuse));
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
+	scene.push_back(mesh);
 	lights.push_back(light);
 	
-
 	for (unsigned i = start; i < end; i++) 
   	{
 		int x = i % WIDTH;
@@ -346,24 +356,34 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
-		if (tree->Intersect(camera_ray))
-		{
-			Vec3 point = camera_ray->get_intersection_point();
-			Vec3 normal = camera_ray->fn;
-			double shadow_bias = 1e-8;
-			Vec3 light_dir = light.get_direction(point);
-			double r2 = light_dir.dot_product(light_dir);
-			double distance = sqrt(r2);
-			light_dir = light_dir.normalize();
 
-			std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
-			bool covered = !trace(shadow_ray, scene, shadow);
-			covered = true;
-			*pixel = (Color(0,0,1) * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
-		}
-		else
+		if (tree_type == none)
 			*pixel = cast_ray(camera_ray, scene, lights);
+		else 
+		{
+			if (tree->intersect_tree(camera_ray))
+				{
+					//temporary shading code
+					Color ambient = Color(0,0,1) * 0.2;
+					Vec3 point = camera_ray->get_intersection_point();
+					Vec3 normal = camera_ray->fn;
+					double shadow_bias = 1e-8;
+					Vec3 light_dir = light.get_direction(point);
+					double r2 = light_dir.dot_product(light_dir);
+					double distance = sqrt(r2);
+					light_dir = light_dir.normalize();
 
+					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
+					//bool covered = !trace(shadow_ray, scene, shadow);
+					bool covered = true;
+					*pixel = ambient + (Color(0,0,1) * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
+					*pixel = Color(1);
+				}
+			else
+				*pixel = Color();
+		}
+		
+			
 		outfile << camera_ray->intersections << std::endl;
 	}
 	outfile.close();
@@ -374,8 +394,7 @@ void create_threads()
 	Color* image = new Color[WIDTH * HEIGHT];
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
-	tree = create_scene(scene, lights, 0);
-	load_textures("textures");
+	tree = create_tree(scene, lights, 0);
 	int no_threads = std::thread::hardware_concurrency();
 
 	std::cout << "-------------------------------------------------------" << std::endl;
@@ -399,8 +418,13 @@ void create_threads()
 	save_image(WIDTH, HEIGHT, image);
 }
 
-int main() 
+int main(int argc, char *argv[]) 
 {
+	load_textures("textures");
+	if (argc > 1 && strcmp("kd", argv[1]) == 0) tree_type = kd;
+	else if (argc > 1 && strcmp("bvh", argv[1]) == 0) tree_type = bvh;
+	else if (argc > 1 && strcmp("octree", argv[1]) == 0) tree_type = octree;
+
 	auto timeStart = std::chrono::high_resolution_clock::now();
 	create_threads();
 	auto timeEnd = std::chrono::high_resolution_clock::now();

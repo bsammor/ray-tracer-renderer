@@ -5,6 +5,7 @@
 #include <object.h>
 #include <vector>
 #include <plane.h>
+#include <tree.h>
 
 enum class EdgeType { Start, End };
 struct BoundEdge {
@@ -62,7 +63,7 @@ struct KdToDo {
     double tMin, tMax;
 };
 
-class KdTreeAccel
+class KdTreeAccel : public Tree
 {
 public:
        KdTreeAccel(const std::vector<std::shared_ptr<Object>> &p,
@@ -70,7 +71,7 @@ public:
                int maxPrims = 1, int maxDepth = -1);
        BBOX WorldBound() const { return bounds; }
        ~KdTreeAccel();
-       bool Intersect(std::shared_ptr<Ray> ray) const;
+       bool intersect_tree(std::shared_ptr<Ray> ray) const;
        bool IntersectP(std::shared_ptr<Ray> ray) const;
 
 public:
