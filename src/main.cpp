@@ -324,7 +324,7 @@ void load_textures(std::string path)
 
 Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
- 	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
+ 	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
 	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
 
 	std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
@@ -342,7 +342,7 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0.0, 5, -10), Vec3(0.0, 1, 0.0), Vec3(0.0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);

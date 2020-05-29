@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 def plot_graph():
     plt.plot(X, Y)
+    plt.autoscale()
     plt.savefig("plots/dist.png")
     plt.close()
 
