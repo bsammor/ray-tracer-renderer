@@ -32,7 +32,7 @@ struct KdAccelNode {
         else {
             primitiveIndicesOffset = primitiveIndices->size();
             for (int i = 0; i < np; ++i)
-            primitiveIndices->push_back(primNums[i]);
+                primitiveIndices->push_back(primNums[i]);
         }
     }
     void InitInterior(int axis, int ac, double s) {
@@ -74,10 +74,11 @@ public:
        bool intersect_tree(std::shared_ptr<Ray> ray) const;
        bool IntersectP(std::shared_ptr<Ray> ray) const;
 
-public:
+
 void buildTree(int nodeNum, const BBOX &bounds,    
         const std::vector<BBOX> &primBounds, int *primNums, int nprims, int depth,
         const std::unique_ptr<BoundEdge[]> edges[3], int *prims0, int *prims1, int badRefines = 0);
+
     const int isectCost, traversalCost, maxPrims;
     const double emptyBonus;
     std::vector<std::shared_ptr<Object>> primitives;
@@ -85,7 +86,6 @@ void buildTree(int nodeNum, const BBOX &bounds,
     KdAccelNode *nodes;
     int nAllocedNodes, nextFreeNode;
     BBOX bounds;
-
 };
 
 #endif

@@ -26,16 +26,16 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@echo "Compiled "$<" successfully!"
 
 run: $(TARGET)
-	./$(TARGET) && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) $(args) && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-kd: $(TARGET)
-	./$(TARGET) "kd" && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) "kd" $(args) && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-bvh: $(TARGET)
-	./$(TARGET) "bvh" && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) "bvh" $(args) && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-octree: $(TARGET)
-	./$(TARGET) "octree" && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) "octree" $(args) && python3 plot.py && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 .PHONY: clean
 clean:

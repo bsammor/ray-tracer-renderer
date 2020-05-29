@@ -52,6 +52,13 @@ bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, doubl
     {
         ray->fn = this->fn;
         ray->set_tmax(t);
+        ray->tex = this->tex;
+        ray->hitcolor = this->color;
+        ray->u = u;
+        ray->v = v;
+        ray->vt0 = vt0;
+        ray->vt1 = vt1;
+        ray->vt2 = vt2;
         __sync_fetch_and_add(&numRayTrianglesIsect, 1); 
         return true;
     }

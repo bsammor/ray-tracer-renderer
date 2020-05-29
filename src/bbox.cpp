@@ -94,7 +94,7 @@ Vec3 BBOX::offset(Vec3 &p) const
 double BBOX::surface_area() const
 {
     Vec3 d = diagonal();
-    return (d.x * d.y + d.x * d.z + d.y * d.z);
+    return 2 * (d.x * d.y + d.x * d.z + d.y * d.z);
 }
 
 void BBOX::expand(Vec3 p) 

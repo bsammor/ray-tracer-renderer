@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <limits.h>
 #include <cstring>
+static constexpr double Infinity = std::numeric_limits<double>::infinity();
 
 static unsigned int Log2Int (unsigned int val) 
 {
@@ -79,7 +80,7 @@ void KdTreeAccel::buildTree(int nodeNum, const BBOX &nodeBounds,
     //<<Initialize interior node and continue recursion>> 
        //<<Choose split axis position for interior node>> 
           int bestAxis = -1, bestOffset = -1;
-          double bestCost = INFINITY;
+          double bestCost = Infinity;
           double oldCost = isectCost * double(nPrimitives);
           double totalSA = nodeBounds.surface_area();
           double invTotalSA = 1 / totalSA;
@@ -246,7 +247,6 @@ bool KdTreeAccel::intersect_tree(std::shared_ptr<Ray> ray) const {
                              ray->intersections++;
                              if (p->intersected(ray, index, u, v, t)) 
                                  hit = true;
-
                       }
                   }
 

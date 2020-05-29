@@ -1,6 +1,8 @@
 #ifndef RAY_H
 #define RAY_H
 #include <vec3.h>
+#include <color.h>
+#include <string>
 
 class Ray
 {
@@ -25,6 +27,9 @@ public:
 	Vec3 invdir; 
     int sign[3]; 
 	Vec3 fn;
+	Vec3 vt0, vt1, vt2;
+	Color hitcolor;
+	std::string tex;
 };
 
 #endif

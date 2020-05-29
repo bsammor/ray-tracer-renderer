@@ -152,7 +152,31 @@ std::vector<std::shared_ptr<Object>> TriangleMesh::get_triangles()
                 attrib.vertices[3 * idx2.vertex_index + 1],
                 attrib.vertices[3 * idx2.vertex_index + 2]);
 
-            triangles.push_back(std::shared_ptr<Object>(new Triangle(v0, v1, v2, Color(), diffuse)));
+            if (attrib.texcoords.size() > 0) {
+                vt0 = Vec3(attrib.texcoords[2 * idx0.texcoord_index + 0],
+                    attrib.texcoords[2 * idx0.texcoord_index + 1],
+                    0.0);
+                vt1 = Vec3(attrib.texcoords[2 * idx1.texcoord_index + 0],
+                    attrib.texcoords[2 * idx1.texcoord_index + 1],
+                    0.0);
+                vt2 = Vec3(attrib.texcoords[2 * idx2.texcoord_index + 0],
+                    attrib.texcoords[2 * idx2.texcoord_index + 1],
+                    0.0);
+            }
+
+            int id = shape.mesh.material_ids[f];
+
+            Color tri_color = Color(materials[id].diffuse[0], materials[id].diffuse[1], materials[id].diffuse[2]);
+            std::shared_ptr<Triangle> tri = std::shared_ptr<Triangle>(new Triangle(v0, v1, v2, tri_color, diffuse));
+            tri->vt0 = vt0, tri->vt1 = vt1, tri->vt2 = vt2;
+
+            std::string tex = materials[id].diffuse_texname;
+            std::string last_token = "";
+            if (!tex.empty())
+                last_token = tex.substr(tex.rfind("/") + 2);
+
+            tri->tex = last_token;
+            triangles.push_back(tri);
             index_offset += fv;
         }
     }

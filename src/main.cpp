@@ -45,11 +45,13 @@ enum accel_struct
 };
 
 std::map<std::string, Texture> textures_map;
-int WIDTH = 640;
-int HEIGHT = 480;
+int WIDTH = 1920;
+int HEIGHT = 1080;
 int totalNumTris = 0;
+int no_threads = std::thread::hardware_concurrency();
 accel_struct tree_type = none;
 Tree *tree;
+
 
 void save_image(double WIDTH, double HEIGHT, Color* image) 
 {
@@ -308,8 +310,11 @@ void load_textures(std::string path)
     for (const auto & entry : fs::directory_iterator(path)) 
 	{
 		std::string name = entry.path().string();
+
+		std::string last_element(name.substr(name.rfind("/") + 2));
+
 		Texture texture(name.c_str());
-		textures_map.insert(std::pair<std::string, Texture>(name, texture));
+		textures_map.insert(std::pair<std::string, Texture>(last_element, texture));
 	}
 }
 
@@ -319,7 +324,7 @@ void load_textures(std::string path)
 
 Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
 {	
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
+ 	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
 	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
 
 	std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
@@ -337,13 +342,13 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0.0, 5, -10), Vec3(0.0, 1, 0.0), Vec3(0.0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(0.0, 2, 0.0), 0.5, Color(0.03, 0.75, 0.83), diffuse));
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
-	scene.push_back(mesh);
+	//std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bmw.obj", Color(1.0, 0.0, 0.0), diffuse));
+	//scene.push_back(mesh);
 	lights.push_back(light);
 	
 	for (unsigned i = start; i < end; i++) 
@@ -362,23 +367,45 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		else 
 		{
 			if (tree->intersect_tree(camera_ray))
+			{
+				Color color;
+				if (!camera_ray->tex.empty())
 				{
-					//temporary shading code
-					Color ambient = Color(0,0,1) * 0.2;
-					Vec3 point = camera_ray->get_intersection_point();
-					Vec3 normal = camera_ray->fn;
-					double shadow_bias = 1e-8;
-					Vec3 light_dir = light.get_direction(point);
-					double r2 = light_dir.dot_product(light_dir);
-					double distance = sqrt(r2);
-					light_dir = light_dir.normalize();
+					Texture tex_image;
+					Vec3 tex = camera_ray->vt0 * (1 - camera_ray->u - camera_ray->v) + camera_ray->vt1 * camera_ray->u + camera_ray->vt2 * camera_ray->v;
 
-					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
-					//bool covered = !trace(shadow_ray, scene, shadow);
-					bool covered = true;
-					*pixel = ambient + (Color(0,0,1) * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
-					*pixel = Color(1);
+					for (auto x : textures_map) {
+						if (camera_ray->tex == x.first) {
+							tex_image = x.second;
+							break;
+						}
+					}
+					int i = round(tex.x * tex_image.width);
+					int j = round(tex.y * tex_image.height);
+
+					color = Color(tex_image.data[(i + j * tex_image.width) * tex_image.channels]/255.,
+					tex_image.data[(i + j * tex_image.width) * tex_image.channels + 1]/255., 
+					tex_image.data[(i + j * tex_image.width) * tex_image.channels + 2]/255.);
 				}
+				else
+					color = camera_ray->hitcolor;
+
+
+				//temporary shading code
+				Color ambient = color * 0.2;
+				Vec3 point = camera_ray->get_intersection_point();
+				Vec3 normal = camera_ray->fn;
+				double shadow_bias = 1e-8;
+				Vec3 light_dir = light.get_direction(point);
+				double r2 = light_dir.dot_product(light_dir);
+				double distance = sqrt(r2);
+				light_dir = light_dir.normalize();
+
+				//std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
+				//bool covered = !trace(shadow_ray, scene, shadow);
+				bool covered = true;
+				*pixel = (ambient +  color * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
+			}
 			else
 				*pixel = Color();
 		}
@@ -394,12 +421,17 @@ void create_threads()
 	Color* image = new Color[WIDTH * HEIGHT];
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
+
+	//create tree and calculate time it took
+	auto timeStart = std::chrono::high_resolution_clock::now();
 	tree = create_tree(scene, lights, 0);
-	int no_threads = std::thread::hardware_concurrency();
+	auto timeEnd = std::chrono::high_resolution_clock::now();
+	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
 
 	std::cout << "-------------------------------------------------------" << std::endl;
 	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;
 	std::cout << "Threads: " << no_threads << std::endl;
+	printf("Tree-build time                             %.2f (sec)\n", passedTime / 1000);
 
 	std::thread *thread_pool = new std::thread[no_threads];
 
@@ -407,6 +439,7 @@ void create_threads()
 	int block = resolution / no_threads;
 	int remainder = resolution % no_threads;
 
+	auto timeStart1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < no_threads - 1; i++) 
 		thread_pool[i] = std::thread(start_thread, i * block, (i + 1) * block, image, i);
 
@@ -414,6 +447,10 @@ void create_threads()
 
 	for (int i = 0; i < no_threads - 1; i++) 
 		thread_pool[i].join();
+
+	auto timeEnd1 = std::chrono::high_resolution_clock::now();
+	auto passedTime1 = std::chrono::duration<double, std::milli>(timeEnd1 - timeStart1).count();
+	printf("Render time                                 %.2f (sec)\n", passedTime1 / 1000);
 
 	save_image(WIDTH, HEIGHT, image);
 }
@@ -424,12 +461,13 @@ int main(int argc, char *argv[])
 	if (argc > 1 && strcmp("kd", argv[1]) == 0) tree_type = kd;
 	else if (argc > 1 && strcmp("bvh", argv[1]) == 0) tree_type = bvh;
 	else if (argc > 1 && strcmp("octree", argv[1]) == 0) tree_type = octree;
+	if (argc > 2) no_threads = atoi(argv[2]);
 
 	auto timeStart = std::chrono::high_resolution_clock::now();
 	create_threads();
 	auto timeEnd = std::chrono::high_resolution_clock::now();
 	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
-	printf("Render time                                %.2f (sec)\n", passedTime / 1000);
+	printf("Overall time                                %.2f (sec)\n", passedTime / 1000);
     printf("Total number of triangles                   : %d\n", totalNumTris); 
     printf("Total number of primary rays                : %lu\n", numPrimaryRays); 
     printf("Total number of ray-triangles tests         : %lu\n", numRayTrianglesTests); 
