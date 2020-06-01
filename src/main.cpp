@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <thread>
 #include <atomic>
+#include <random>
 #include <memory>
 #include <experimental/filesystem>
 #include <sys/time.h>
@@ -30,6 +31,7 @@ namespace fs = std::experimental::filesystem;
 #include <kdtree.h>
 #include <camera.h>
 #include <vec3.h>
+#include <octree.h>
 #include <triangle.h>
 #include <bvh.h>
 #define PI 3.14159265358979323846
@@ -51,6 +53,8 @@ int totalNumTris = 0;
 int no_threads = std::thread::hardware_concurrency();
 accel_struct tree_type = none;
 Tree *tree;
+double render_time, build_time;
+Octree *test;
 
 
 void save_image(double WIDTH, double HEIGHT, Color* image) 
@@ -322,34 +326,45 @@ void load_textures(std::string path)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene, std::vector<Light> &lights, int id)
+Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 {	
- 	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
-	if (id == 0) totalNumTris += mesh->shapes[0].mesh.num_face_vertices.size();
-
-	std::vector<std::shared_ptr<Object>> primitives = mesh->get_triangles();
-
 	switch (tree_type)
 	{
-		case kd: return new KdTreeAccel(primitives);
-		case bvh: return new BVHAccel(primitives);
-		case octree: return nullptr;
+		case kd: return new KdTreeAccel(scene, 80, 1, 0.0, 1, 20);
+		case bvh: return new BVHAccel(scene);
+		case octree: 
+		{
+			BBOX bounds;
+			for (const std::shared_ptr<Object> &prim : scene) 
+			{
+				BBOX b = prim->get_bbox();
+				bounds = BBOX::union_bbox(bounds, b);
+			}
+			std::cout << "done" << std::endl;
+			int count = 0;
+			test = new Octree(scene, bounds, count);
+			std::cout << "count: " << count << std::endl;
+			exit(0);
+			return new Octree(scene, bounds, count);
+		}
 		case none: return nullptr;
 	}
+
 	return nullptr;
 }
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
-	std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	//std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
+	Camera camera(Vec3(0.0, 1, -15), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, -15), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
-	std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(0.0, 2, 0.0), 0.5, Color(0.03, 0.75, 0.83), diffuse));
+	lights.push_back(light);
+
+	//std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(0.0, 2, 0.0), 0.5, Color(0.03, 0.75, 0.83), diffuse));
 	//std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bmw.obj", Color(1.0, 0.0, 0.0), diffuse));
 	//scene.push_back(mesh);
-	lights.push_back(light);
 	
 	for (unsigned i = start; i < end; i++) 
   	{
@@ -362,7 +377,23 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
 
-		if (tree_type == none)
+		Color colors[8] = {Color(1,1,1), Color(0.5,0.5,0.5), Color(1,0,0), Color(0,1,0), Color (0,0,1), Color(1,1,0), Color(1,0,1), Color(0,1,1)};
+
+		bool hit = false;
+		for (int i = 0; i < 8; i++)
+		{
+			if (test->children[i]->bounds.intersected(camera_ray))
+			{
+				hit = true;
+				*pixel = colors[i];
+			}
+		}
+
+		if (!hit)
+			*pixel = Color();
+
+
+		/*if (tree_type == none)
 			*pixel = cast_ray(camera_ray, scene, lights);
 		else 
 		{
@@ -408,30 +439,33 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 			}
 			else
 				*pixel = Color();
-		}
+		}*/
 		
 			
-		outfile << camera_ray->intersections << std::endl;
+		//outfile << camera_ray->intersections << std::endl;
 	}
-	outfile.close();
+	//outfile.close();
 }
 
 void create_threads() 
 {
 	Color* image = new Color[WIDTH * HEIGHT];
-	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
+	for (auto shape : mesh->shapes)
+		totalNumTris += shape.mesh.num_face_vertices.size();
+	std::vector<std::shared_ptr<Object>> scene = mesh->get_triangles();
 
-	//create tree and calculate time it took
+	//start and time building of acceleration structure.
 	auto timeStart = std::chrono::high_resolution_clock::now();
-	tree = create_tree(scene, lights, 0);
+	tree = create_tree(scene);
 	auto timeEnd = std::chrono::high_resolution_clock::now();
-	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
+	build_time = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
 
 	std::cout << "-------------------------------------------------------" << std::endl;
 	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;
 	std::cout << "Threads: " << no_threads << std::endl;
-	printf("Tree-build time                             %.2f (sec)\n", passedTime / 1000);
+	printf("Tree-build time                             %.2f (sec)\n", build_time / 1000);
 
 	std::thread *thread_pool = new std::thread[no_threads];
 
@@ -439,6 +473,7 @@ void create_threads()
 	int block = resolution / no_threads;
 	int remainder = resolution % no_threads;
 
+	//start and time rendering of scene.
 	auto timeStart1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < no_threads - 1; i++) 
 		thread_pool[i] = std::thread(start_thread, i * block, (i + 1) * block, image, i);
@@ -449,8 +484,8 @@ void create_threads()
 		thread_pool[i].join();
 
 	auto timeEnd1 = std::chrono::high_resolution_clock::now();
-	auto passedTime1 = std::chrono::duration<double, std::milli>(timeEnd1 - timeStart1).count();
-	printf("Render time                                 %.2f (sec)\n", passedTime1 / 1000);
+	render_time = std::chrono::duration<double, std::milli>(timeEnd1 - timeStart1).count();
+	printf("Render time                                 %.2f (sec)\n", render_time / 1000);
 
 	save_image(WIDTH, HEIGHT, image);
 }
@@ -462,12 +497,9 @@ int main(int argc, char *argv[])
 	else if (argc > 1 && strcmp("bvh", argv[1]) == 0) tree_type = bvh;
 	else if (argc > 1 && strcmp("octree", argv[1]) == 0) tree_type = octree;
 	if (argc > 2) no_threads = atoi(argv[2]);
-
-	auto timeStart = std::chrono::high_resolution_clock::now();
 	create_threads();
-	auto timeEnd = std::chrono::high_resolution_clock::now();
-	auto passedTime = std::chrono::duration<double, std::milli>(timeEnd - timeStart).count();
-	printf("Overall time                                %.2f (sec)\n", passedTime / 1000);
+
+	printf("Overall time                                %.2f (sec)\n", (render_time + build_time) / 1000);
     printf("Total number of triangles                   : %d\n", totalNumTris); 
     printf("Total number of primary rays                : %lu\n", numPrimaryRays); 
     printf("Total number of ray-triangles tests         : %lu\n", numRayTrianglesTests); 

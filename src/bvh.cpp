@@ -4,7 +4,7 @@ BBOX BVHAccel::WorldBound() const {
     return nodes ? nodes[0].bounds : BBOX();
 }
 
-BVHAccel::BVHAccel(std::vector<std::shared_ptr<Object>> p,
+BVHAccel::BVHAccel(std::vector<std::shared_ptr<Object>> &p,
          int maxPrimsInNode)
      : maxPrimsInNode(std::min(255, maxPrimsInNode)), primitives(p)
 {
@@ -51,7 +51,11 @@ BVHBuildNode *BVHAccel::recursiveBuild(std::vector<BVHPrimitiveInfo> &primitiveI
 
     } else {
         //<<Compute bound of primitive centroids, choose split dimension dim>> 
-           BBOX centroidBounds;
+           double minNum = std::numeric_limits<double>::lowest();
+           double maxNum = std::numeric_limits<double>::max();
+           Vec3 pMin = Vec3(maxNum, maxNum, maxNum);
+           Vec3 pMax = Vec3(minNum, minNum, minNum);
+           BBOX centroidBounds(pMin, pMax);
            for (int i = start; i < end; ++i)
                centroidBounds = BBOX::union_bbox(centroidBounds, primitiveInfo[i].centroid);
            int dim = centroidBounds.MaximumExtent();

@@ -28,7 +28,8 @@ KdTreeAccel::KdTreeAccel(
            maxDepth = std::round(8 + 1.3f * Log2Int(primitives.size()));
       // <<Compute bounds for kd-tree construction>> 
           std::vector<BBOX> primBounds;
-          for (const std::shared_ptr<Object> &prim : primitives) {
+          for (const std::shared_ptr<Object> &prim : primitives) 
+          {
               BBOX b = prim->get_bbox();
               bounds = BBOX::union_bbox(bounds, b);
               primBounds.push_back(b);

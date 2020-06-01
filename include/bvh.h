@@ -54,7 +54,7 @@ class BVHAccel : public Tree
 {
   public:
     // BVHAccel Public Methods
-    BVHAccel(std::vector<std::shared_ptr<Object>> p,
+    BVHAccel(std::vector<std::shared_ptr<Object>> &p,
              int maxPrimsInNode = 1);
     BBOX WorldBound() const;
     bool intersect_tree(std::shared_ptr<Ray> ray) const;

@@ -66,13 +66,13 @@ struct KdToDo {
 class KdTreeAccel : public Tree
 {
 public:
-       KdTreeAccel(const std::vector<std::shared_ptr<Object>> &p,
-               int isectCost = 80, int traversalCost = 1, double emptyBonus = 0.5,
-               int maxPrims = 1, int maxDepth = -1);
-       BBOX WorldBound() const { return bounds; }
-       ~KdTreeAccel();
-       bool intersect_tree(std::shared_ptr<Ray> ray) const;
-       bool IntersectP(std::shared_ptr<Ray> ray) const;
+    KdTreeAccel(const std::vector<std::shared_ptr<Object>> &p,
+            int isectCost = 80, int traversalCost = 1, double emptyBonus = 0.5,
+            int maxPrims = 1, int maxDepth = -1);
+    BBOX WorldBound() const { return bounds; }
+    ~KdTreeAccel();
+    bool intersect_tree(std::shared_ptr<Ray> ray) const;
+    bool IntersectP(std::shared_ptr<Ray> ray) const;
 
 
 void buildTree(int nodeNum, const BBOX &bounds,    
