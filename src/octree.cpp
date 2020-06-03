@@ -75,41 +75,6 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int &totalp
     }
 }
 
-bool traverse_tree(std::shared_ptr<Ray> ray, const Octree *tree)
-{
-    bool hit = false;
-    Vec3 invdir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
-    int sign[3];
-    sign[0] = (invdir.x < 0); 
-    sign[1] = (invdir.y < 0); 
-    sign[2] = (invdir.z < 0); 
-
-    if (tree->bounds.IntersectP(ray, invdir, sign))
-    {
-        if (tree->children[0] != NULL)
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                if (tree->children[i]->bounds.IntersectP(ray, invdir, sign))
-                    if (traverse_tree(ray, tree->children[i]))
-                        hit = true;
-            }
-        }
-
-        else 
-        {
-            double u,v,t;
-            for (unsigned i = 0 ; i < tree->primitives.size(); i++)
-            {
-
-                if (tree->primitives[i]->intersected(ray, i, u, v, t))
-                    hit = true;
-            }
-        }
-    }
-    return hit;
-}
-
 bool Octree::intersect_tree(std::shared_ptr<Ray> ray) const
 {
     bool hit = false;
@@ -125,7 +90,7 @@ bool Octree::intersect_tree(std::shared_ptr<Ray> ray) const
             for (int i = 0; i < 8; i++)
             {
                 if (children[i]->bounds.IntersectP(ray, invdir, sign))
-                    if (traverse_tree(ray, children[i]))
+                    if (children[i]->intersect_tree(ray))
                         hit = true;
             }
         }
