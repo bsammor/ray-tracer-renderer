@@ -9,7 +9,6 @@
 //TODO: FIX is_overlapping() function. 
 //Triangles are being thrown even though they should be inside one of the boxes.
 
-
 class Octree : public Tree
 {
 public:
@@ -22,6 +21,6 @@ public:
     std::vector<std::shared_ptr<Object>> primitives;
 
 private:
-    const static int max_depth = 5;
+    const static int max_depth = 3;
     const static int max_prims = 1;
 };

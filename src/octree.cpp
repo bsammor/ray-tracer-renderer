@@ -2,7 +2,7 @@
 
 bool is_overlapping(BBOX child_bounds, BBOX tri_bounds)
 {
-    Vec3 dist = (tri_bounds.min + tri_bounds.max - child_bounds.max - child_bounds.min) * 0.5;
+    Vec3 dist = (tri_bounds.max + tri_bounds.min - child_bounds.max - child_bounds.min) * 0.5;
     if(dist.x < 0)
         dist.x = (-1*dist.x);
     if(dist.y < 0)
@@ -11,7 +11,7 @@ bool is_overlapping(BBOX child_bounds, BBOX tri_bounds)
         dist.z = (-1*dist.z);
 
     //this is the sum of both box's radii
-    Vec3 sum = (tri_bounds.min - tri_bounds.max + child_bounds.max - child_bounds.min) * 0.5;
+    Vec3 sum = (tri_bounds.max - tri_bounds.min + child_bounds.max - child_bounds.min) * 0.5;
 
     //if the dist is greater than the sum, then they
     //don't overlap
@@ -34,14 +34,17 @@ void get_children_bbox(std::vector<BBOX> &children_bounds, BBOX parent_bounds)
     for (Vec3 v : corners)
     {
         BBOX child;
-        child.min = Vec3(std::min(v.x, center.x), std::fmin(v.y, center.y), std::fmin(v.z, center.z));
-        child.max = Vec3(std::max(v.x, center.x), std::fmax(v.y, center.y), std::fmax(v.z, center.z));
+        child.min = Vec3(std::min(v.x, center.x), std::min(v.y, center.y), std::min(v.z, center.z));
+        child.max = Vec3(std::max(v.x, center.x), std::max(v.y, center.y), std::max(v.z, center.z));
         children_bounds.push_back(child);
     }
 }
 
 Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int &totalprims, int depth)
 {
+    for (int i = 0; i < 8; i ++)
+        children[i] = NULL;
+ 
     bounds = b;
     if (p.size() < 1) 
         return;
@@ -50,7 +53,6 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int &totalp
     {
         this->primitives = p;
         totalprims += p.size();
-        std::cout << p.size() << " primitives were added to a leaf" << std::endl;
         return;
     }
 
@@ -63,17 +65,80 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int &totalp
         BBOX childb = children_bounds[i];
         std::vector<std::shared_ptr<Object>> childp;
 
-        for (unsigned i = 0; i < p.size(); i++)
+        for (unsigned j = 0; j < p.size(); j++)
         {
-            if (is_overlapping(childb, p[i]->get_bbox()))
-                childp.push_back(p[i]);
+            if (is_overlapping(childb, p[j]->get_bbox()))
+                childp.push_back(p[j]);
         }
 
         children[i] = new Octree(childp, childb, totalprims, depth+1);
     }
 }
 
+bool traverse_tree(std::shared_ptr<Ray> ray, const Octree *tree)
+{
+    bool hit = false;
+    Vec3 invdir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
+    int sign[3];
+    sign[0] = (invdir.x < 0); 
+    sign[1] = (invdir.y < 0); 
+    sign[2] = (invdir.z < 0); 
+
+    if (tree->bounds.IntersectP(ray, invdir, sign))
+    {
+        if (tree->children[0] != NULL)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                if (tree->children[i]->bounds.IntersectP(ray, invdir, sign))
+                    if (traverse_tree(ray, tree->children[i]))
+                        hit = true;
+            }
+        }
+
+        else 
+        {
+            double u,v,t;
+            for (unsigned i = 0 ; i < tree->primitives.size(); i++)
+            {
+
+                if (tree->primitives[i]->intersected(ray, i, u, v, t))
+                    hit = true;
+            }
+        }
+    }
+    return hit;
+}
+
 bool Octree::intersect_tree(std::shared_ptr<Ray> ray) const
 {
-    return false;
+    bool hit = false;
+    Vec3 invdir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
+    int sign[3];
+    sign[0] = (invdir.x < 0); 
+    sign[1] = (invdir.y < 0); 
+    sign[2] = (invdir.z < 0); 
+    if (bounds.IntersectP(ray, invdir, sign))
+    {
+        if (children[0] != NULL)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                if (children[i]->bounds.IntersectP(ray, invdir, sign))
+                    if (traverse_tree(ray, children[i]))
+                        hit = true;
+            }
+        }
+        else 
+        {
+            double u,v,t;
+            for (unsigned i = 0 ; i < primitives.size(); i++)
+            {
+                if (primitives[i]->intersected(ray, i, u, v, t))
+                    hit = true;
+            }
+        }
+    }
+
+    return hit;
 }

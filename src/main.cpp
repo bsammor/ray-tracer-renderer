@@ -146,7 +146,12 @@ bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene,
 	bool intersected = false;
 	for (unsigned int i = 0; i < scene.size(); i++) 
 	{
-		if (scene[i]->bbox.intersected(ray))
+		Vec3 invdir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
+		int sign[3];
+		sign[0] = (invdir.x < 0); 
+		sign[1] = (invdir.y < 0); 
+		sign[2] = (invdir.z < 0); 
+		if (scene[i]->bbox.IntersectP(ray, invdir, sign))
 		{
 			if (scene[i]->intersected(ray, i, u, v, t))
 			{
@@ -340,12 +345,9 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 				BBOX b = prim->get_bbox();
 				bounds = BBOX::union_bbox(bounds, b);
 			}
-			std::cout << "done" << std::endl;
 			int count = 0;
 			test = new Octree(scene, bounds, count);
-			std::cout << "count: " << count << std::endl;
-			exit(0);
-			return new Octree(scene, bounds, count);
+			return test;
 		}
 		case none: return nullptr;
 	}
@@ -356,7 +358,7 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	//std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0.0, 1, -15), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, -15), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
@@ -376,24 +378,8 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
-
-		Color colors[8] = {Color(1,1,1), Color(0.5,0.5,0.5), Color(1,0,0), Color(0,1,0), Color (0,0,1), Color(1,1,0), Color(1,0,1), Color(0,1,1)};
-
-		bool hit = false;
-		for (int i = 0; i < 8; i++)
-		{
-			if (test->children[i]->bounds.intersected(camera_ray))
-			{
-				hit = true;
-				*pixel = colors[i];
-			}
-		}
-
-		if (!hit)
-			*pixel = Color();
-
-
-		/*if (tree_type == none)
+		
+		if (tree_type == none)
 			*pixel = cast_ray(camera_ray, scene, lights);
 		else 
 		{
@@ -439,12 +425,13 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 			}
 			else
 				*pixel = Color();
-		}*/
+		}
 		
 			
 		//outfile << camera_ray->intersections << std::endl;
 	}
 	//outfile.close();
+	std::cout << "thread " << id << " is done." << std::endl;
 }
 
 void create_threads() 
