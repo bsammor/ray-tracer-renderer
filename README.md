@@ -24,10 +24,12 @@ Type "make" in root directory to compile & build
 # Multi-threading
 The ray tracer runs by default using the maximum number of threads available to the CPU.
 
-To specify the number of threads instead, add args="number here" to the make run command.
+To specify the number of threads instead, add args="number here" to the make run command or add the number as a second argument to ./tracer
 
-Example: make run-kd args="7" (if using make). 
-         ./tracer kd 7 (if not using make).
+Example: 
+*make run-kd args="7"  
+
+*./tracer kd 7
  
 # Triangle Meshes
 The tracer's loader can only load the wavefront or .obj 3d model format (can be adjusted by changing the used loader tiny_obj_loader.h)
