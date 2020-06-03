@@ -13,7 +13,7 @@ Requires g++ and Makefile
 Type "make" in root directory to compile & build
 
 # Running
- To run the default ray tracer with multi-threading only and simple bounding boxes, type "make run" or ./tracer
+ To run the default ray tracer with multi-threading and simple bounding boxes only, type "make run" or ./tracer
  
  To run the ray tracer with a KD-tree, type "make run-kd" or ./tracer kd
  
