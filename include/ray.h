@@ -14,6 +14,7 @@ public:
 	Ray();
 	Ray(Vec3 origin, Vec3 direction, double tnear, double tmax);
 	inline Vec3 get_origin() {return origin;}
+	inline void set_origin(Vec3 origin) {this->origin = origin;}
 	void set_tmax(double point);
 	inline Vec3 get_direction() {return direction;}
 	Vec3 get_intersection_point();

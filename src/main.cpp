@@ -182,10 +182,10 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 
 			//testing meshes
 			if (std::shared_ptr<TriangleMesh> mesh = std::dynamic_pointer_cast<TriangleMesh>(scene[obj_index])) {
-				//normal = mesh->tri_fnormal;
-				//Vec3 tex = mesh->tri_tex_coordinates;
+				/*normal = mesh->tri_fnormal;
+				Vec3 tex = mesh->tri_tex_coordinates;
 
-				/*Texture tex_image;
+				Texture tex_image;
 
 				for (auto x : textures_map) {
 					if (mesh->tex_name == x.first) {
@@ -213,16 +213,15 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 					color += texture * light.get_color() * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir));
 				}
 				double result = std::max(0.0, normal.dot_product(ray->get_direction() * -1));
-				color += Color(result, result, result);*/
+				color += Color(result, result, result);
 
-				/*float NdotView = std::max(0.0, normal.dot_product(ray->get_direction() * -1)); 
+				float NdotView = std::max(0.0, normal.dot_product(ray->get_direction() * -1)); 
 				const int M = 10; 
 				float checker = (fmod(tex.x * M, 1.0) > 0.5) ^ (fmod(tex.y * M, 1.0) < 0.5); 
 				float c = 0.3 * (1 - checker) + 0.7 * checker; 
 		
 				double result = c * NdotView;
 				color = Color(result, result, result);*/
-				color = Color(0,0,1);
 				return color;
 			}
 			else if (scene[obj_index]->get_material() == diffuse)
@@ -358,15 +357,14 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	//std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 1, 0.0), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0.0, 5, -10), Vec3(0.0, 1, 0.0), Vec3(0.0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	lights.push_back(light);
 
-	//std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(0.0, 2, 0.0), 0.5, Color(0.03, 0.75, 0.83), diffuse));
-	//std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bmw.obj", Color(1.0, 0.0, 0.0), diffuse));
-	//scene.push_back(mesh);
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
+	scene.push_back(mesh);
 	
 	for (unsigned i = start; i < end; i++) 
   	{
@@ -378,7 +376,7 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
 		__sync_fetch_and_add(&numPrimaryRays, 1); 
-		
+
 		if (tree_type == none)
 			*pixel = cast_ray(camera_ray, scene, lights);
 		else 
@@ -431,14 +429,13 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		//outfile << camera_ray->intersections << std::endl;
 	}
 	//outfile.close();
-	std::cout << "thread " << id << " is done." << std::endl;
 }
 
 void create_threads() 
 {
 	Color* image = new Color[WIDTH * HEIGHT];
 	std::vector<Light> lights;
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
 	for (auto shape : mesh->shapes)
 		totalNumTris += shape.mesh.num_face_vertices.size();
 	std::vector<std::shared_ptr<Object>> scene = mesh->get_triangles();

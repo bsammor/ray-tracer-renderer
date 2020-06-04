@@ -21,6 +21,6 @@ public:
     std::vector<std::shared_ptr<Object>> primitives;
 
 private:
-    const static int max_depth = 3;
+    const static int max_depth = 5;
     const static int max_prims = 1;
 };
