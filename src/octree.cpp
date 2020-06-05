@@ -99,6 +99,7 @@ bool Octree::intersect_tree(std::shared_ptr<Ray> ray) const
             double u,v,t;
             for (unsigned i = 0 ; i < primitives.size(); i++)
             {
+                ray->intersections++;
                 if (primitives[i]->intersected(ray, i, u, v, t))
                     hit = true;
             }

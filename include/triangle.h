@@ -6,7 +6,6 @@
 
 extern uint64_t numRayTrianglesTests;
 extern uint64_t numRayTrianglesIsect;
-extern uint64_t numPrimaryRays;
 
 class Triangle : public Object
 {

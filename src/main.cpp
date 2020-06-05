@@ -55,6 +55,7 @@ accel_struct tree_type = none;
 Tree *tree;
 double render_time, build_time;
 Octree *test;
+unsigned long int numPrimaryRays = WIDTH * HEIGHT;
 
 
 void save_image(double WIDTH, double HEIGHT, Color* image) 
@@ -155,11 +156,11 @@ bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene,
 		{
 			if (scene[i]->intersected(ray, i, u, v, t))
 			{
-				if (type == shadow && scene[i]->get_material() == reflective_refractive) continue;
-				ray->u = u;
-				ray->v = v;
-				ray->set_tmax(t);
-				ray->set_index(i);
+				//if (type == shadow && scene[i]->get_material() == reflective_refractive) continue;
+				//ray->u = u;
+				//ray->v = v;
+				//ray->set_tmax(t);
+				//ray->set_index(i);
 				intersected = true;
 			}
 		}
@@ -182,8 +183,42 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 
 			//testing meshes
 			if (std::shared_ptr<TriangleMesh> mesh = std::dynamic_pointer_cast<TriangleMesh>(scene[obj_index])) {
+				if (!ray->tex.empty())
+				{
+					Texture tex_image;
+					Vec3 tex = ray->vt0 * (1 - ray->u - ray->v) + ray->vt1 * ray->u + ray->vt2 * ray->v;
+
+					for (auto x : textures_map) {
+						if (ray->tex == x.first) {
+							tex_image = x.second;
+							break;
+						}
+					}
+					int i = round(tex.x * tex_image.width);
+					int j = round(tex.y * tex_image.height);
+
+					color = Color(tex_image.data[(i + j * tex_image.width) * tex_image.channels]/255.,
+					tex_image.data[(i + j * tex_image.width) * tex_image.channels + 1]/255., 
+					tex_image.data[(i + j * tex_image.width) * tex_image.channels + 2]/255.);
+				}
+				else
+					color = ray->hitcolor;
+
+
+				//temporary shading code
+				Color ambient = color * 0.2;
+				Vec3 point = ray->get_intersection_point();
+				Vec3 normal = ray->fn;
+				Vec3 light_dir = lights[0].get_direction(point);
+				double r2 = light_dir.dot_product(light_dir);
+				//double distance = sqrt(r2);
+				light_dir = light_dir.normalize();
+				bool covered = true;
+				color = (ambient +  color * lights[0].get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
+
 				/*normal = mesh->tri_fnormal;
 				Vec3 tex = mesh->tri_tex_coordinates;
+				
 
 				Texture tex_image;
 
@@ -334,7 +369,7 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 {	
 	switch (tree_type)
 	{
-		case kd: return new KdTreeAccel(scene, 80, 1, 0.0, 1, 20);
+		case kd: return new KdTreeAccel(scene);
 		case bvh: return new BVHAccel(scene);
 		case octree: 
 		{
@@ -356,15 +391,15 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
-	//std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
+	std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
 	Camera camera(Vec3(0.0, 5, -10), Vec3(0.0, 1, 0.0), Vec3(0.0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	lights.push_back(light);
 
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
-	scene.push_back(mesh);
+	//std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
+	//scene.push_back(mesh);
 	
 	for (unsigned i = start; i < end; i++) 
   	{
@@ -374,8 +409,7 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		double new_y = (-2.0 * y) / HEIGHT + 1.0;
 		Color* pixel = image + (x + y * WIDTH);
 
-		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y);
-		__sync_fetch_and_add(&numPrimaryRays, 1); 
+		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y); 
 
 		if (tree_type == none)
 			*pixel = cast_ray(camera_ray, scene, lights);
@@ -410,25 +444,25 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 				Color ambient = color * 0.2;
 				Vec3 point = camera_ray->get_intersection_point();
 				Vec3 normal = camera_ray->fn;
-				double shadow_bias = 1e-8;
+				//double shadow_bias = 1e-8;
 				Vec3 light_dir = light.get_direction(point);
 				double r2 = light_dir.dot_product(light_dir);
-				double distance = sqrt(r2);
+				//double distance = sqrt(r2);
 				light_dir = light_dir.normalize();
 
 				//std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
 				//bool covered = !trace(shadow_ray, scene, shadow);
 				bool covered = true;
-				*pixel = (ambient +  color * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
+				*pixel = (ambient + color * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
 			}
 			else
 				*pixel = Color();
 		}
 		
 			
-		//outfile << camera_ray->intersections << std::endl;
+		outfile << camera_ray->intersections << std::endl;
 	}
-	//outfile.close();
+	outfile.close();
 }
 
 void create_threads() 
@@ -488,6 +522,7 @@ int main(int argc, char *argv[])
     printf("Total number of primary rays                : %lu\n", numPrimaryRays); 
     printf("Total number of ray-triangles tests         : %lu\n", numRayTrianglesTests); 
     printf("Total number of ray-triangles intersections : %lu\n", numRayTrianglesIsect); 
+	std::cout << (int) (numPrimaryRays / (render_time/1000)) << std::endl;
 	printf("-------------------------------------------------------\n");
 	return 0;
 }

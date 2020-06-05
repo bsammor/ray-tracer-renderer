@@ -3,7 +3,6 @@
 constexpr double BIAS = 1e-8;
 uint64_t numRayTrianglesTests = 0;
 uint64_t numRayTrianglesIsect = 0;
-uint64_t numPrimaryRays = 0;
 
 Triangle::Triangle()
 {

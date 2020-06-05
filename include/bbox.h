@@ -79,36 +79,6 @@ public:
 		if (hitt1) *hitt1 = t1;
 		return true;
 	}
-	inline bool Intersect(std::shared_ptr<Ray> ray, const Vec3 &invDir,
-									const int dirIsNeg[3]) const
-	{
-		const BBOX &bounds = *this;
-		// Check for ray intersection against $x$ and $y$ slabs
-		double tMin = (bounds[dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
-		double tMax = (bounds[1 - dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
-		double tyMin = (bounds[dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
-		double tyMax = (bounds[1 - dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
-		// Update _tMax_ and _tyMax_ to ensure robust bounds intersection
-		//tMax *= 1 + 2 * gamma(3);
-        //tyMax *= 1 + 2 * gamma(3);
-		if (tMin > tyMax || tyMin > tMax) return false;
-		if (tyMin > tMin) tMin = tyMin;
-		if (tyMax < tMax) tMax = tyMax;
-
-		// Check for ray intersection against $z$ slab
-		double tzMin = (bounds[dirIsNeg[2]].z - ray->get_origin().z) * invDir.z;
-		double tzMax = (bounds[1 - dirIsNeg[2]].z - ray->get_origin().z) * invDir.z;
-
-		// Update _tzMax_ to ensure robust bounds intersection
-		//tzMax *= 1 + 2 * gamma(3);
-		if (tMin > tzMax || tzMin > tMax) return false;
-		if (tzMin > tMin) tMin = tzMin;
-		if (tzMax < tMax) tMax = tzMax;
-
-		bool result = (tMin < ray->get_tmax()) && (tMax > 0);
-		if (result) ray->set_origin(tMin);
-		return result;
-	}
 
     Vec3 min, max;
 };
