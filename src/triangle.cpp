@@ -26,7 +26,7 @@ Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color, Material material)
 
 bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t)
 {
-    __sync_fetch_and_add(&numRayTrianglesTests, 1); 
+    //__sync_fetch_and_add(&numRayTrianglesTests, 1); 
     Vec3 v0v1 = v1 - v0;
     Vec3 v0v2 = v2 - v0;
     Vec3 pvec = ray->get_direction().cross_product(v0v2);
@@ -58,7 +58,7 @@ bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, doubl
         ray->vt0 = vt0;
         ray->vt1 = vt1;
         ray->vt2 = vt2;
-        __sync_fetch_and_add(&numRayTrianglesIsect, 1); 
+        //__sync_fetch_and_add(&numRayTrianglesIsect, 1); 
         return true;
     }
 

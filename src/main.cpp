@@ -152,8 +152,8 @@ bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene,
 		sign[0] = (invdir.x < 0); 
 		sign[1] = (invdir.y < 0); 
 		sign[2] = (invdir.z < 0); 
-		if (scene[i]->bbox.IntersectP(ray, invdir, sign))
-		{
+		//if (scene[i]->bbox.IntersectP(ray, invdir, sign))
+		//{
 			if (scene[i]->intersected(ray, i, u, v, t))
 			{
 				//if (type == shadow && scene[i]->get_material() == reflective_refractive) continue;
@@ -163,7 +163,7 @@ bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene,
 				//ray->set_index(i);
 				intersected = true;
 			}
-		}
+		//}
 	}
 
 	return intersected;
@@ -180,9 +180,9 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 			Vec3 point = ray->get_intersection_point();
 			Vec3 normal = scene[obj_index]->get_normal(point);
 			double shadow_bias = 1e-8;
-
 			//testing meshes
-			if (std::shared_ptr<TriangleMesh> mesh = std::dynamic_pointer_cast<TriangleMesh>(scene[obj_index])) {
+			if (std::shared_ptr<TriangleMesh> mesh = std::dynamic_pointer_cast<TriangleMesh>(scene[obj_index])) 
+			{
 				if (!ray->tex.empty())
 				{
 					Texture tex_image;
@@ -391,15 +391,18 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
-	std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0.0, 5, -10), Vec3(0.0, 1, 0.0), Vec3(0.0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	//std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
+	Camera camera(Vec3(0.0, 1, 5), Vec3(0.0, 0.0, 1), Vec3(0.0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	lights.push_back(light);
 
 	//std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
-	//scene.push_back(mesh);
+	//std::shared_ptr<Sphere> sphere(new Sphere(Vec3(3,3,5), 1, Color(1,0,0), diffuse));
+	//std::shared_ptr<Sphere> sphere1(new Sphere(Vec3(3,3,-10), 1, Color(0.5), diffuse));
+	//scene.push_back(sphere);
+	//scene.push_back(sphere1);
 	
 	for (unsigned i = start; i < end; i++) 
   	{
@@ -410,8 +413,31 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		Color* pixel = image + (x + y * WIDTH);
 
 		std::shared_ptr<Ray> camera_ray = camera.create_camera_ray(new_x, new_y); 
+		if (test->ray_octree_traversal(camera_ray))
+		{
+			Color color = camera_ray->hitcolor;
+			//temporary shading code
+			Color ambient = color * 0.2;
+			Vec3 point = camera_ray->get_intersection_point();
+			Vec3 normal = camera_ray->fn;
+			//double shadow_bias = 1e-8;
+			Vec3 light_dir = light.get_direction(point);
+			double r2 = light_dir.dot_product(light_dir);
+			//double distance = sqrt(r2);
+			light_dir = light_dir.normalize();
 
-		if (tree_type == none)
+			//std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * shadow_bias, light_dir, MINIMUM, distance));
+			//bool covered = !trace(shadow_ray, scene, shadow);
+			bool covered = true;
+			*pixel = (ambient + color * light.get_intensity() / (4 * PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
+		}
+		else
+		{
+			*pixel = Color();
+		}
+		
+
+		/*if (tree_type == none)
 			*pixel = cast_ray(camera_ray, scene, lights);
 		else 
 		{
@@ -460,16 +486,16 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 		}
 		
 			
-		outfile << camera_ray->intersections << std::endl;
+		//outfile << camera_ray->intersections << std::endl;*/
 	}
-	outfile.close();
+	//outfile.close();
 }
 
 void create_threads() 
 {
 	Color* image = new Color[WIDTH * HEIGHT];
 	std::vector<Light> lights;
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/bunny.obj", Color(1.0, 0.0, 0.0), diffuse));
 	for (auto shape : mesh->shapes)
 		totalNumTris += shape.mesh.num_face_vertices.size();
 	std::vector<std::shared_ptr<Object>> scene = mesh->get_triangles();
@@ -522,7 +548,7 @@ int main(int argc, char *argv[])
     printf("Total number of primary rays                : %lu\n", numPrimaryRays); 
     printf("Total number of ray-triangles tests         : %lu\n", numRayTrianglesTests); 
     printf("Total number of ray-triangles intersections : %lu\n", numRayTrianglesIsect); 
-	std::cout << (int) (numPrimaryRays / (render_time/1000)) << std::endl;
+	//std::cout << (int) (numPrimaryRays / (render_time/1000)) << std::endl;
 	printf("-------------------------------------------------------\n");
 	return 0;
 }

@@ -22,6 +22,13 @@ bool is_overlapping(BBOX child_bounds, BBOX tri_bounds)
     return true;
 }
 
+bool Inside(BBOX b1, BBOX b2) {
+    bool x = (b1.max.x >= b2.min.x) && (b1.min.x <= b2.max.x);
+    bool y = (b1.max.y >= b2.min.y) && (b1.min.y <= b2.max.y);
+    bool z = (b1.max.z >= b2.min.z) && (b1.min.z <= b2.max.z);
+    return (x && y && z);
+}
+
 void get_children_bbox(std::vector<BBOX> &children_bounds, BBOX parent_bounds)
 {
     Vec3 min = parent_bounds.min;
@@ -94,7 +101,7 @@ bool Octree::intersect_tree(std::shared_ptr<Ray> ray) const
                         hit = true;
             }
         }
-        else 
+        else if (primitives.size() > 0)
         {
             double u,v,t;
             for (unsigned i = 0 ; i < primitives.size(); i++)
@@ -109,142 +116,139 @@ bool Octree::intersect_tree(std::shared_ptr<Ray> ray) const
     return hit;
 }
 
-/*using namespace std;
+using namespace std;
 
 unsigned char a; // because an unsigned char is 8 bits
 
-int first_node(double tx0, double ty0, double tz0, double txm, double tym, double tzm){
-unsigned char answer = 0;   // initialize to 00000000
-// select the entry plane and set bits
-if(tx0 > ty0){
-    if(tx0 > tz0){ // PLANE YZ
-        if(tym < tx0) answer|=2;    // set bit at position 1
-        if(tzm < tx0) answer|=1;    // set bit at position 0
-        return (int) answer;
-    }
-}
-else {
-    if(ty0 > tz0){ // PLANE XZ
-        if(txm < ty0) answer|=4;    // set bit at position 2
-        if(tzm < ty0) answer|=1;    // set bit at position 0
-        return (int) answer;
-    }
-}
-// PLANE XY
-if(txm < tz0) answer|=4;    // set bit at position 2
-if(tym < tz0) answer|=2;    // set bit at position 1
-return (int) answer;
-}
-
-int new_node(double txm, int x, double tym, int y, double tzm, int z){
-if(txm < tym){
-    if(txm < tzm){return x;}  // YZ plane
-}
-else{
-    if(tym < tzm){return y;} // XZ plane
-}
-return z; // XY plane;
-}
-
-void proc_subtree (double tx0, double ty0, double tz0, double tx1, double ty1, double tz1, Octree *node){
-float txm, tym, tzm;
-int currNode;
-
-if(tx1 < 0 || ty1 < 0 || tz1 < 0) return;
-if(node->children[0] == NULL){
-    cout << "Reached leaf node " << endl;
-    return;
-}
-else{ cout << "Reached node " << endl;}
-
-txm = 0.5*(tx0 + tx1);
-tym = 0.5*(ty0 + ty1);
-tzm = 0.5*(tz0 + tz1);
-
-currNode = first_node(tx0,ty0,tz0,txm,tym,tzm);
-do{
-    switch (currNode)
-    {
-    case 0: { 
-        proc_subtree(tx0,ty0,tz0,txm,tym,tzm,node->children[a]);
-        currNode = new_node(txm,4,tym,2,tzm,1);
-        break;}
-    case 1: { 
-        proc_subtree(tx0,ty0,tzm,txm,tym,tz1,node->children[1^a]);
-        currNode = new_node(txm,5,tym,3,tz1,8);
-        break;}
-    case 2: { 
-        proc_subtree(tx0,tym,tz0,txm,ty1,tzm,node->children[2^a]);
-        currNode = new_node(txm,6,ty1,8,tzm,3);
-        break;}
-    case 3: { 
-        proc_subtree(tx0,tym,tzm,txm,ty1,tz1,node->children[3^a]);
-        currNode = new_node(txm,7,ty1,8,tz1,8);
-        break;}
-    case 4: { 
-        proc_subtree(txm,ty0,tz0,tx1,tym,tzm,node->children[4^a]);
-        currNode = new_node(tx1,8,tym,6,tzm,5);
-        break;}
-    case 5: { 
-        proc_subtree(txm,ty0,tzm,tx1,tym,tz1,node->children[5^a]);
-        currNode = new_node(tx1,8,tym,7,tz1,8);
-        break;}
-    case 6: { 
-        proc_subtree(txm,tym,tz0,tx1,ty1,tzm,node->children[6^a]);
-        currNode = new_node(tx1,8,ty1,8,tzm,7);
-        break;}
-    case 7: { 
-        proc_subtree(txm,tym,tzm,tx1,ty1,tz1,node->children[7^a]);
-        currNode = 8;
-        break;}
-    }
-} while (currNode<8);
-}
-
-void Octree::ray_octree_traversal(BBOX bounds, std::shared_ptr<Ray> ray){
-a = 0;
-
-Vec3 xmin(bounds.min[0], bounds.min[1], bounds.max[2]);
-Vec3 xmax(bounds.max[0], bounds.max[1], bounds.min[2]);
-
-float sizeX = xmax[0] - xmin[0];
-float sizeY = xmax[1] - xmin[1];
-float sizeZ = xmax[2] - xmin[2];
-// fixes for rays with negative direction
-if(ray->get_direction()[0] < 0){
-    ray->get_origin()[0] = sizeX - ray->get_origin()[0];
-    ray->get_direction()[0] = - ray->get_direction()[0];
-    a |= 4 ; //bitwise OR (latest bits are XYZ)
-}
-if(ray->get_direction()[1] < 0){
-    ray->get_origin()[1] = sizeY - ray->get_origin()[1];
-    ray->get_direction()[1] = - ray->get_direction()[1];
-    a |= 2 ; 
-}
-if(ray->get_direction()[2] < 0){
-    ray->get_origin()[2] = sizeZ - ray->get_origin()[2];
-    ray->get_direction()[2] = - ray->get_direction()[2];
-    a |= 1 ; 
-}
-
-double divx = 1 / ray->get_direction()[0]; // IEEE stability fix
-double divy = 1 / ray->get_direction()[1];
-double divz = 1 / ray->get_direction()[2];
-
-double tx0 = (xmin[0] - ray->get_origin()[0]) * divx;
-double tx1 = (xmax[0] - ray->get_origin()[0]) * divx;
-double ty0 = (xmin[1] - ray->get_origin()[1]) * divy;
-double ty1 = (xmax[1] - ray->get_origin()[1]) * divy;
-double tz0 = (xmin[2] - ray->get_origin()[2]) * divz;
-double tz1 = (xmax[2] - ray->get_origin()[2]) * divz;
-
-if( max(max(tx0,ty0),tz0) < min(min(tx1,ty1),tz1) ){
-    proc_subtree(tx0,ty0,tz0,tx1,ty1,tz1,this);
-}
-else
+int first_node(double tx0, double ty0, double tz0, double txm, double tym, double tzm)
 {
-    std::cout << "Wtf";
+    unsigned char answer = 0;   // initialize to 00000000
+    // select the entry plane and set bits
+    if(tx0 > ty0){
+        if(tx0 > tz0){ // PLANE YZ
+            if(tym < tx0) answer|=2;    // set bit at position 1
+            if(tzm < tx0) answer|=1;    // set bit at position 0
+            return (int) answer;
+        }
+    }
+    else {
+        if(ty0 > tz0){ // PLANE XZ
+            if(txm < ty0) answer|=4;    // set bit at position 2
+            if(tzm < ty0) answer|=1;    // set bit at position 0
+            return (int) answer;
+        }
+    }
+    // PLANE XY
+    if(txm < tz0) answer|=4;    // set bit at position 2
+    if(tym < tz0) answer|=2;    // set bit at position 1
+    return (int) answer;
 }
 
+int new_node(double txm, int x, double tym, int y, double tzm, int z)
+{
+    if(txm < tym){
+        if(txm < tzm){return x;}  // YZ plane
+    }
+    else{
+        if(tym < tzm){return y;} // XZ plane
+    }
+    return z; // XY plane;
 }
-*/
+
+void proc_subtree (double tx0, double ty0, double tz0, double tx1, double ty1, double tz1, Octree *node, std::shared_ptr<Ray> ray, bool &hit)
+{
+    float txm, tym, tzm;
+    int currNode;
+
+    if(tx1 < 0 || ty1 < 0 || tz1 < 0) return;
+    if(node->children[0] == NULL){
+        for (int i = 0; i < node->primitives.size(); i++)
+        {
+            double u, v, t;
+            if (node->primitives[i]->intersected(ray, i, u, v, t))
+                hit = true;
+        }
+        return;
+    }
+
+    txm = 0.5*(tx0 + tx1);
+    tym = 0.5*(ty0 + ty1);
+    tzm = 0.5*(tz0 + tz1);
+
+    currNode = first_node(tx0,ty0,tz0,txm,tym,tzm);
+    do{
+        switch (currNode)
+        {
+        case 0: { 
+            proc_subtree(tx0,ty0,tz0,txm,tym,tzm,node->children[a], ray, hit);
+            currNode = new_node(txm,4,tym,2,tzm,1);
+            break;}
+        case 1: { 
+            proc_subtree(tx0,ty0,tzm,txm,tym,tz1,node->children[1^a], ray, hit);
+            currNode = new_node(txm,5,tym,3,tz1,8);
+            break;}
+        case 2: { 
+            proc_subtree(tx0,tym,tz0,txm,ty1,tzm,node->children[2^a], ray, hit);
+            currNode = new_node(txm,6,ty1,8,tzm,3);
+            break;}
+        case 3: { 
+            proc_subtree(tx0,tym,tzm,txm,ty1,tz1,node->children[3^a], ray, hit);
+            currNode = new_node(txm,7,ty1,8,tz1,8);
+            break;}
+        case 4: { 
+            proc_subtree(txm,ty0,tz0,tx1,tym,tzm,node->children[4^a], ray, hit);
+            currNode = new_node(tx1,8,tym,6,tzm,5);
+            break;}
+        case 5: { 
+            proc_subtree(txm,ty0,tzm,tx1,tym,tz1,node->children[5^a], ray, hit);
+            currNode = new_node(tx1,8,tym,7,tz1,8);
+            break;}
+        case 6: { 
+            proc_subtree(txm,tym,tz0,tx1,ty1,tzm,node->children[6^a], ray, hit);
+            currNode = new_node(tx1,8,ty1,8,tzm,7);
+            break;}
+        case 7: { 
+            proc_subtree(txm,tym,tzm,tx1,ty1,tz1,node->children[7^a], ray, hit);
+            currNode = 8;
+            break;}
+        }
+    } while (currNode<8);
+}
+
+bool Octree::ray_octree_traversal(std::shared_ptr<Ray> ray)
+{
+    a = 0;
+    bool hit = false;
+
+    Vec3 size = bounds.diagonal();
+    
+    if(ray->get_direction()[0] < 0)
+    {
+        a |= 4 ; //bitwise OR (latest bits are XYZ)
+    }
+    if(ray->get_direction()[1] < 0)
+    {
+        a |= 2 ; 
+    }
+    if(ray->get_direction()[2] < 0)
+    {
+        a |= 1 ; 
+    }
+    Vec3 invDir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
+    int dirIsNeg[3];
+    dirIsNeg[0] = (invDir.x < 0); 
+    dirIsNeg[1] = (invDir.y < 0); 
+    dirIsNeg[2] = (invDir.z < 0); 
+    double tx0 = (bounds[dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
+    double tx1 = (bounds[1 - dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
+    double ty0 = (bounds[dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
+    double ty1 = (bounds[1 - dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
+	double tz0 = (bounds[dirIsNeg[2]].z - ray->get_origin().z) * invDir.z;
+	double tz1 = (bounds[1 - dirIsNeg[2]].z - ray->get_origin().z) * invDir.z;
+
+	if (max(max(tx0,ty0),tz0) < min(min(tx1,ty1),tz1) )
+	{
+      proc_subtree(tx0,ty0,tz0,tx1,ty1,tz1,this, ray, hit);
+    }
+    return hit;
+}

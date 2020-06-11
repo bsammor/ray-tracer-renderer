@@ -17,6 +17,7 @@ public:
 	inline void set_origin(Vec3 origin) {this->origin = origin;}
 	void set_tmax(double point);
 	inline Vec3 get_direction() {return direction;}
+	void set_direction(Vec3 direction) {this->direction = direction;}
 	Vec3 get_intersection_point();
 	double get_tnear();
 	inline double get_tmax() {return tmax;}

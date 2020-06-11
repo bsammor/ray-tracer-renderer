@@ -36,6 +36,7 @@ bool Sphere::intersected(std::shared_ptr<Ray> ray, int index, double& u, double&
 	if (t0 > ray->get_tnear() && t0 < ray->get_tmax())
 	{
 		ray->set_tmax(t0);
+		ray->set_index(index);
 		ray->fn = this->get_normal(ray->get_intersection_point());
 		t = t0;
 		return true;
@@ -43,6 +44,7 @@ bool Sphere::intersected(std::shared_ptr<Ray> ray, int index, double& u, double&
 	else if (t1 > ray->get_tnear() && t1 < ray->get_tmax())
 	{
 		ray->set_tmax(t1);
+		ray->set_index(index);
 		ray->fn = this->get_normal(ray->get_intersection_point());
 		t = t1;
 		return true;

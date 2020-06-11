@@ -35,7 +35,7 @@ for x in range(12):
         z += values[0]
         Y.append(values[0])
 
-print(z/y)
+#print(z/y)
 
 plot_graph()
 plot_hist()
