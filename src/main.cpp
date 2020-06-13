@@ -17,10 +17,6 @@
 #include <atomic>
 #include <random>
 #include <memory>
-#include <experimental/filesystem>
-#include <sys/time.h>
-#include <sys/resource.h>
-namespace fs = std::experimental::filesystem;
 
 #include <texture.h>
 #include <plane.h>
@@ -30,22 +26,13 @@ namespace fs = std::experimental::filesystem;
 #include <bbox.h>
 #include <kdtree.h>
 #include <camera.h>
+#include <utilities.h>
 #include <vec3.h>
 #include <octree.h>
 #include <triangle.h>
 #include <bvh.h>
 #define PI 3.14159265358979323846
 #define BIAS 0.0001; 
-enum ray_type
-{
-	shadow, camera
-};
-
-enum accel_struct
-{
-	kd, bvh, octree, none
-};
-
 std::map<std::string, Texture> textures_map;
 int WIDTH = 1920;
 int HEIGHT = 1080;
@@ -53,46 +40,8 @@ int totalNumTris = 0;
 int no_threads = std::thread::hardware_concurrency();
 accel_struct tree_type = none;
 Tree *tree;
-double render_time, build_time;
+double render_time = 0.0, build_time = 0.0;
 Octree *test;
-unsigned long int numPrimaryRays = WIDTH * HEIGHT;
-
-
-void save_image(double WIDTH, double HEIGHT, Color* image) 
-{
-	std::string s;
-	int len = 5;
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-
-	srand(time(NULL));
-    for (int i = 0; i < len; ++i) {
-        s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
-
-	s[len] = 0;
-
-	const char *temp = s.c_str();
-	char name[25];
-	sprintf(name, "./pictures/%s.ppm", temp);
-
-	std::ofstream ofs(name, std::ios::out | std::ios::binary);
-	ofs << "P6\n" << WIDTH << " " << HEIGHT << "\n255\n";
-	for (int i = 0; i < WIDTH * HEIGHT; ++i) 
-	{
-		ofs << (unsigned char)(std::min(double(1), image[i].r) * 255) <<
-			(unsigned char)(std::min(double(1), image[i].g) * 255) <<
-			(unsigned char)(std::min(double(1), image[i].b) * 255);
-	}
-	ofs.close();
-}
-
-double clamp(const double& lo, const double& hi, const double& v)
-{
-	return std::max(lo, std::min(hi, v));
-}
 
 std::shared_ptr<Ray> create_reflection_ray(std::shared_ptr<Ray> camera_ray, std::shared_ptr<Object> obj) 
 {
@@ -348,23 +297,6 @@ Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> sc
 	return Color();
 }
 
-void load_textures(std::string path) 
-{
-    for (const auto & entry : fs::directory_iterator(path)) 
-	{
-		std::string name = entry.path().string();
-
-		std::string last_element(name.substr(name.rfind("/") + 2));
-
-		Texture texture(name.c_str());
-		textures_map.insert(std::pair<std::string, Texture>(last_element, texture));
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 {	
 	switch (tree_type)
@@ -397,12 +329,6 @@ void start_thread(const unsigned start, const unsigned end, Color *image, int id
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	lights.push_back(light);
-
-	//std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
-	//std::shared_ptr<Sphere> sphere(new Sphere(Vec3(3,3,5), 1, Color(1,0,0), diffuse));
-	//std::shared_ptr<Sphere> sphere1(new Sphere(Vec3(3,3,-10), 1, Color(0.5), diffuse));
-	//scene.push_back(sphere);
-	//scene.push_back(sphere1);
 	
 	for (unsigned i = start; i < end; i++) 
   	{
@@ -536,19 +462,18 @@ void create_threads()
 
 int main(int argc, char *argv[]) 
 {
-	load_textures("textures");
+	load_textures("textures", textures_map);
 	if (argc > 1 && strcmp("kd", argv[1]) == 0) tree_type = kd;
 	else if (argc > 1 && strcmp("bvh", argv[1]) == 0) tree_type = bvh;
 	else if (argc > 1 && strcmp("octree", argv[1]) == 0) tree_type = octree;
 	if (argc > 2) no_threads = atoi(argv[2]);
 	create_threads();
 
-	printf("Overall time                                %.2f (sec)\n", (render_time + build_time) / 1000);
-    printf("Total number of triangles                   : %d\n", totalNumTris); 
-    printf("Total number of primary rays                : %lu\n", numPrimaryRays); 
-    printf("Total number of ray-triangles tests         : %lu\n", numRayTrianglesTests); 
-    printf("Total number of ray-triangles intersections : %lu\n", numRayTrianglesIsect); 
-	//std::cout << (int) (numPrimaryRays / (render_time/1000)) << std::endl;
-	printf("-------------------------------------------------------\n");
+	std::cout << "Overall time                                        : " << std::setprecision(2) << (render_time + build_time) / 1000 << std::endl;
+	std::cout << "Total number of triangles                           : " << totalNumTris << std::endl;
+	std::cout << "Total number of primary rays                        : " << WIDTH*HEIGHT << std::endl;
+	std::cout << "Total number of ray-triangles tests                 : " << numRayTrianglesTests << std::endl;
+	std::cout << "Total number of ray-triangles intersections         : " << numRayTrianglesIsect << std::endl;
+	std::cout << "----------------------------------------------------------------------------------" << std::endl;
 	return 0;
 }

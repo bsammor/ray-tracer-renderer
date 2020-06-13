@@ -4,6 +4,11 @@
 #include <color.h>
 #include <string>
 
+enum ray_type
+{
+	shadow, camera
+};
+
 class Ray
 {
 private:
@@ -25,9 +30,7 @@ public:
 	int get_index();
 
 	double u = 0.0, v = 0.0;
-	int intersections = 0;
-	Vec3 invdir; 
-    int sign[3]; 
+	int intersections = 0; 
 	Vec3 fn;
 	Vec3 vt0, vt1, vt2;
 	Color hitcolor;

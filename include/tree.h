@@ -3,6 +3,11 @@
 #include <memory>
 #include <ray.h>
 
+enum accel_struct
+{
+	kd, bvh, octree, none
+};
+
 class Tree
 {
 public:
