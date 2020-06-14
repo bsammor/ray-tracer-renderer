@@ -49,6 +49,7 @@ bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, doubl
 
     if (t < ray->get_tmax()) 
     {
+        ray->set_index(index);
         ray->fn = this->fn;
         ray->set_tmax(t);
         ray->tex = this->tex;

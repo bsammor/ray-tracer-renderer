@@ -11,7 +11,7 @@ enum accel_struct
 class Tree
 {
 public:
-    virtual bool intersect_tree(std::shared_ptr<Ray> ray) const = 0;
+    virtual bool intersect_tree(std::shared_ptr<Ray> ray) = 0;
 };
 
 #endif

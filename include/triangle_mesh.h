@@ -15,9 +15,6 @@ public:
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     Triangle tri;
-    Vec3 tri_tex_coordinates;
-    Vec3 tri_vnormal;
-    Vec3 tri_fnormal;
     std::string warn;
     std::string err;
     std::string tex_name;

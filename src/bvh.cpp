@@ -183,7 +183,8 @@ int BVHAccel::flattenBVHTree(BVHBuildNode *node, int *offset) {
     return myOffset;
 }
 
-bool BVHAccel::intersect_tree(std::shared_ptr<Ray> ray) const {
+bool BVHAccel::intersect_tree(std::shared_ptr<Ray> ray) 
+{
     bool hit = false;
     Vec3 invDir(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z);
     int dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };

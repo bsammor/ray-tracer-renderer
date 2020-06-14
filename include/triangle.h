@@ -16,7 +16,7 @@ public:
 	bool intersectedP(std::shared_ptr<Ray> ray) const override;
 	Vec3 get_normal(Vec3 point) override;
 	BBOX get_bbox() override;
-	Vec3 v0, v1, v2, fn, vt0, vt1, vt2;
+	Vec3 v0, v1, v2, fn, vn, vt0, vt1, vt2;
 	std::string tex;
 };
 

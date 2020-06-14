@@ -12,7 +12,6 @@ enum ray_type
 class Ray
 {
 private:
-	Vec3 origin, direction;
 	double tnear, tmax;
 	int obj_index = -1;
 public:
@@ -29,12 +28,14 @@ public:
 	void set_index(int i);
 	int get_index();
 
-	double u = 0.0, v = 0.0;
 	int intersections = 0; 
 	Vec3 fn;
+	double u = 0.0, v = 0.0;
 	Vec3 vt0, vt1, vt2;
 	Color hitcolor;
+	Vec3 origin, direction;
 	std::string tex;
+	unsigned char a;
 };
 
 #endif

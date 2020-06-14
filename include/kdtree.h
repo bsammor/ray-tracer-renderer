@@ -4,7 +4,7 @@
 #include <memory>
 #include <object.h>
 #include <vector>
-#include <plane.h>
+#include <plane.h>  
 #include <tree.h>
 
 enum class EdgeType { Start, End };
@@ -71,7 +71,7 @@ public:
             int maxPrims = 1, int maxDepth = -1);
     BBOX WorldBound() const { return bounds; }
     ~KdTreeAccel();
-    bool intersect_tree(std::shared_ptr<Ray> ray) const;
+    bool intersect_tree(std::shared_ptr<Ray> ray);
     bool IntersectP(std::shared_ptr<Ray> ray) const;
 
 

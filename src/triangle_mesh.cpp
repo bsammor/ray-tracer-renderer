@@ -23,7 +23,7 @@ TriangleMesh::TriangleMesh(const char* file, Color color, Material material)
 
     this->color = color;
     this->material = material;
-    this->bbox = this->get_bbox();
+    this->bbox = get_bbox();
 }
 
 bool TriangleMesh::intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t)
@@ -99,7 +99,7 @@ bool TriangleMesh::intersected(std::shared_ptr<Ray> ray, int index, double& u, d
 
 Vec3 TriangleMesh::get_normal(Vec3 point)
 {
-    return tri_vnormal;
+    return tri.get_normal(point);
 }
 
 BBOX TriangleMesh::get_bbox()
@@ -172,8 +172,7 @@ std::vector<std::shared_ptr<Object>> TriangleMesh::get_triangles()
 
             std::string tex = materials[id].diffuse_texname;
             std::string last_token = "";
-            if (!tex.empty())
-                last_token = tex.substr(tex.rfind("/") + 2);
+            if (!tex.empty()) last_token = tex.substr(tex.rfind("/") + 2);
 
             tri->tex = last_token;
             triangles.push_back(tri);
