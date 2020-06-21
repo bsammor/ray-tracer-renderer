@@ -22,5 +22,5 @@ public:
 
 private:
     const static int max_depth = 7;
-    const static int max_prims = 1;
+    const static int min_prims = 1;
 };

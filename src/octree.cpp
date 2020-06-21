@@ -2,21 +2,11 @@
 
 bool is_overlapping(BBOX child_bounds, BBOX tri_bounds)
 {
-    Vec3 dist = (tri_bounds.max + tri_bounds.min - child_bounds.max - child_bounds.min) * 0.5;
-    if(dist.x < 0)
-        dist.x = (-1*dist.x);
-    if(dist.y < 0)
-        dist.y = (-1*dist.y);
-    if(dist.z < 0)
-        dist.z = (-1*dist.z);
 
-    Vec3 sum = (tri_bounds.max - tri_bounds.min + child_bounds.max - child_bounds.min) * 0.5;
-
-    if(dist.x > sum.x) return false;
-    if(dist.y > sum.y) return false;
-    if(dist.z > sum.z) return false;
-
-    return true;
+    bool x = (child_bounds.max.x >= tri_bounds.min.x) && (child_bounds.min.x <= tri_bounds.max.x);
+    bool y = (child_bounds.max.y >= tri_bounds.min.y) && (child_bounds.min.y <= tri_bounds.max.y);
+    bool z = (child_bounds.max.z >= tri_bounds.min.z) && (child_bounds.min.z <= tri_bounds.max.z);
+    return (x && y && z);
 }
 
 void get_children_bbox(std::vector<BBOX> &children_bounds, BBOX parent_bounds)
@@ -49,7 +39,7 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int &totalp
     if (p.size() < 1) 
         return;
 
-    if (p.size() <= max_prims || depth >= max_depth)
+    if (p.size() <= min_prims || depth >= max_depth)
     {
         this->primitives = p;
         totalprims += p.size();
