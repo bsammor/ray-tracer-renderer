@@ -9,7 +9,7 @@
 class Octree : public Tree
 {
 public:
-    Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int &totalprims, int depth = 0);
+    Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int depth = 0);
     ~Octree();
     bool intersect_tree(std::shared_ptr<Ray> ray);
     int first_node(double tx0, double ty0, double tz0, double txm, double tym, double tzm);

@@ -42,7 +42,6 @@ int no_threads = std::thread::hardware_concurrency();
 accel_struct tree_type = none;
 Tree *tree;
 double render_time = 0.0, build_time = 0.0;
-Octree *test;
 
 std::shared_ptr<Ray> create_reflection_ray(std::shared_ptr<Ray> camera_ray, std::shared_ptr<Object> obj) 
 {
@@ -305,9 +304,7 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 				BBOX b = prim->get_bbox();
 				bounds = BBOX::union_bbox(bounds, b);
 			}
-			int count = 0;
-			test = new Octree(scene, bounds, count);
-			return test;
+			return new Octree(scene, bounds);
 		}
 		case none: return nullptr;
 	}
@@ -318,7 +315,7 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	//std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0.0, 5, -10), Vec3(0.0, 0, 0), Vec3(0.0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0, 5, -10), Vec3(0, 0, 0), Vec3(0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
@@ -445,5 +442,6 @@ int main(int argc, char *argv[])
 	std::cout << "Total number of ray-triangles tests         : " << numRayTrianglesTests << std::endl;
 	std::cout << "Total number of ray-triangles intersections : " << numRayTrianglesIsect << std::endl;
 	std::cout << "-------------------------------------------------------" << std::endl;
+	std::cout << (WIDTH*HEIGHT)/((render_time) / 1000) / 1000000. << std::endl;
 	return 0;
 }
