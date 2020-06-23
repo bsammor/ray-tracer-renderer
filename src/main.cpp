@@ -98,14 +98,14 @@ bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene,
 		sign[1] = (invdir.y < 0); 
 		sign[2] = (invdir.z < 0); 
 		double u, v, t;
-		if (scene[i]->bbox.IntersectP(ray, invdir, sign))
-		{
+		//if (scene[i]->bbox.IntersectP(ray, invdir, sign))
+		//{
 			if (scene[i]->intersected(ray, i, u, v, t))
 			{
 				if (type == shadow && scene[i]->get_material() == reflective_refractive) continue;
 				intersected = true;
 			}
-		}
+		//}
 	}
 
 	return intersected;
@@ -315,11 +315,14 @@ Tree* create_tree(std::vector<std::shared_ptr<Object>> &scene)
 void start_thread(const unsigned start, const unsigned end, Color *image, int id)
 {
 	//std::ofstream outfile ("distribution/dist" + std::to_string(id) + ".txt");
-	Camera camera(Vec3(0, 5, -10), Vec3(0, 0, 0), Vec3(0, 6, -10), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0, 1, 5), Vec3(0, 0, 0), Vec3(0, 2, 5), ((50 * 0.5) * PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	lights.push_back(light);
+
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
+	scene.push_back(mesh);
 
 	for (unsigned i = start; i < end; i++) 
   	{
@@ -386,7 +389,7 @@ void create_threads()
 {
 	Color* image = new Color[WIDTH * HEIGHT];
 	std::vector<Light> lights;
-	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/gallery.obj", Color(1.0, 0.0, 0.0), diffuse));
+	std::shared_ptr<TriangleMesh> mesh = std::shared_ptr<TriangleMesh>(new TriangleMesh("models/teapot.obj", Color(1.0, 0.0, 0.0), diffuse));
 	for (auto shape : mesh->shapes)
 		totalNumTris += shape.mesh.num_face_vertices.size();
 	std::vector<std::shared_ptr<Object>> scene = mesh->get_triangles();

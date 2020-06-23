@@ -15,15 +15,20 @@ rects2 = ax.bar(ind+width, zvals, width, color='g')
 kvals = [2.80, 3.21, 0.15, 0.27, 1.76, 0.38, 3.01]
 rects3 = ax.bar(ind+width*2, kvals, width, color='b')
 
-
+ax.set_title('Rendering Speed')
 ax.set_ylabel('Million Ray/Sec')
 ax.set_xticks(ind+width)
-ax.set_xticklabels( ('Teapot 6.3k', 'Bunny 144k', 'Sponza 226k', 'Room 533k', 'Dragon 871k', 'Gallery 999k', 'Buddha 1087k') )
+ax.set_xticklabels( ('Teapot\n6.3k', 'Bunny\n144k', 'Sponza\n226k', 'Room\n533k', 'Dragon\n871k', 'Gallery\n999k', 'Buddha\n1087k') )
 ax.legend( (rects1[0], rects2[0], rects3[0]), ('BVH', 'KD', 'Octree') )
 
 def autolabel(rects):
+    """Attach a text label above each bar in *rects*, displaying its height."""
     for rect in rects:
-        h = rect.get_height()
-        ax.text(rect.get_x()+rect.get_width()/2., 1.05*h, '%d'%int(h),
-                ha='center', va='bottom')
-plt.savefig("plots/comparison.png")
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+                    
+plt.savefig("../plots/comparison.png")

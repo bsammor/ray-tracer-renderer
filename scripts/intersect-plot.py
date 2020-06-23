@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 def plot_graph():
     plt.plot(X, Y)
     plt.autoscale()
-    plt.savefig("plots/dist.png")
+    plt.savefig("../plots/dist.png")
     plt.close()
 
 
@@ -20,14 +20,14 @@ def plot_hist():
     plt.plot(x, p, 'k', linewidth=2)
     title = "Fit results: mu = %.2f,  std = %.2f" % (mu, std)
     plt.title(title)
-    plt.savefig("plots/normal.png")
+    plt.savefig("../plots/normal.png")
 
 
 X, Y = [], []
 z = 0
 y = 0
 for x in range(12):
-    path = 'distribution/dist' + str(x) + '.txt'
+    path = '../distribution/dist' + str(x) + '.txt'
     for line in open(path, 'r'):
         values = [float(s) for s in line.split()]
         X.append(y)

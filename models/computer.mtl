@@ -10,7 +10,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Casa Simples/PisoDentro.jpg
 
 newmtl ChaoFora
 Ns 96.078443
@@ -21,7 +20,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Casa Simples/PisoFora.jpg
 
 newmtl Material.001
 Ns 96.078443
@@ -42,7 +40,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Casa Simples/Parede.jpg
 
 newmtl Teto
 Ns 96.078443
@@ -53,7 +50,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Casa Simples/Telhas.jpg
 
 newmtl TexBolinha
 Ns 96.078443
@@ -64,7 +60,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Papel e bolinhas/TexturaPapel.jpg
 
 newmtl TextPapel
 Ns 96.078443
@@ -75,7 +70,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Papel e bolinhas/TexturaPapel.jpg
 
 newmtl TexturaMesaEscritorio
 Ns 96.078443
@@ -86,7 +80,6 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Mesa/Textura mesaEscritorio.jpg
 
 newmtl TexturaTela
 Ns 96.078443
@@ -97,4 +90,3 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd /home/sammour/Downloads/ConjuntoCasaMesa/Tela/TexturaPc1.png
