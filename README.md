@@ -3,7 +3,7 @@
 * Bounding Boxes
 * Bounding Volume Hierarchies using Surface Area Heuristics
 * KD-trees using Surface Area Heuristics
-* Octrees using closest neighbour traversal
+* Octrees
 
 # Compiling
 The ray tracer can be compiled on a linux system or windows ubuntu subsystem.
