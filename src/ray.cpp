@@ -4,8 +4,8 @@ Ray::Ray()
 {
 	origin = Vec3();
 	direction = Vec3();
-	tnear = minimum;
-	tmax = infinity;
+	tnear = MINIMUM;
+	tmax = INFINITY;
 }
 
 Ray::Ray(Vec3 origin, Vec3 direction, double tnear, double tmax)

@@ -23,5 +23,5 @@ std::shared_ptr<Ray> Camera::create_camera_ray(double x, double y)
 	Vec3 result2 = up * world_height * y;
 	Vec3 ray_dir = (forward + result1 + result2);
 
-	return std::shared_ptr<Ray>(new Ray(this->position, ray_dir.normalize(), minimum, infinity));
+	return std::shared_ptr<Ray>(new Ray(this->position, ray_dir.normalize(), MINIMUM, INFINITY));
 }

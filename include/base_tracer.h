@@ -9,7 +9,7 @@ std::shared_ptr<Ray> create_reflection_ray(std::shared_ptr<Ray> ray, std::shared
 	Vec3 normal = obj->get_normal(point);
 	Vec3 direction = incidence - (normal * 2 * incidence.dot_product(normal));
 
-	return std::shared_ptr<Ray>(new Ray(point, direction.normalize(), minimum, infinity));
+	return std::shared_ptr<Ray>(new Ray(point, direction.normalize(), MINIMUM, INFINITY));
 }
 
 Vec3 refract(Vec3 I, Vec3 N, double ior)
@@ -115,7 +115,7 @@ inline Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Obje
 					double distance = sqrt(r2);
 					light_dir = light_dir.normalize();
 
-					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * BIAS, light_dir, minimum, distance));
+					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * BIAS, light_dir, MINIMUM, distance));
 					bool covered = !trace(shadow_ray, scene, secondary);
 					color += (obj_color * light.get_color() * light.get_intensity() / (4 * M_PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
 				}
@@ -144,14 +144,14 @@ inline Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Obje
 					Vec3 refraction_direction = refract(dir, normal, scene[obj_index]->get_ior()).normalize();
 					Vec3 refrection_origin = outside ? point - bias : point + bias;
 
-					std::shared_ptr<Ray> refraction_ray = std::shared_ptr<Ray>(new Ray(refrection_origin, refraction_direction, minimum, infinity));
+					std::shared_ptr<Ray> refraction_ray = std::shared_ptr<Ray>(new Ray(refrection_origin, refraction_direction, MINIMUM, INFINITY));
 					refraction_color = cast_ray(refraction_ray, scene, lights, depth + 1);
 				}
 
 				std::shared_ptr<Ray> reflection_ray = create_reflection_ray(ray, scene[obj_index]);
 				Vec3 reflection_direction = reflection_ray->get_direction();
 				Vec3 reflection_origin = outside ? point + bias : point - bias;
-				std::shared_ptr<Ray> test = std::shared_ptr<Ray>(new Ray(reflection_origin, reflection_direction, minimum, infinity));
+				std::shared_ptr<Ray> test = std::shared_ptr<Ray>(new Ray(reflection_origin, reflection_direction, MINIMUM, INFINITY));
 				reflection_color = cast_ray(test, scene, lights, depth + 1);
 
 				color += reflection_color * kr + refraction_color * (1 - kr);
@@ -170,7 +170,7 @@ inline Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Obje
 					light_dir = light_dir.normalize();
 
 
-					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * BIAS, light_dir, minimum, distance));
+					std::shared_ptr<Ray> shadow_ray = std::shared_ptr<Ray>(new Ray(point + normal * BIAS, light_dir, MINIMUM, distance));
 					bool covered = !trace(shadow_ray, scene, secondary);
 
 					diffuse += (scene[obj_index]->get_color() * light.get_color() * light.get_intensity() / (4 * M_PI * r2) * std::max(0.0, normal.dot_product(light_dir))) * covered;
@@ -178,7 +178,7 @@ inline Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Obje
 					Vec3 I = light_dir * -1;
 					Vec3 R = I - normal * 2  * I.dot_product(normal);
 
-					 specular += light.get_color() * light.get_intensity() / (4 * M_PI * r2) * std::pow(std::max(0.0, R.dot_product(ray->get_direction() * -1)), 10) * covered;
+					specular += light.get_color() * light.get_intensity() / (4 * M_PI * r2) * std::pow(std::max(0.0, R.dot_product(ray->get_direction() * -1)), 10) * covered;
 				}
 
 				color = diffuse * 0 + specular * 1;

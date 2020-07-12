@@ -7,13 +7,13 @@
 #include <bbox.h>
 #include <camera.h>
 #include <utilities.h>
-#include <naive_tracer.h>
+#include <base_tracer.h>
 #include <vec3.h>
 #include <triangle.h>
 #include <bvh.h>
 #include <octree.h>
 #include <kdtree.h>
-std::map<std::string, Texture> textures_map;
+std::map<std::string, Texture> textures_map = load_textures("textures");
 double render_time = 0.0, build_time = 0.0;
 int WIDTH = 1920, HEIGHT = 1080;
 int total_num_prims = 0;
@@ -126,17 +126,24 @@ void setup_scene()
 {
 	std::cout << "--------------------------------------------------------" << std::endl;
 	std::cout << "Loading scene " << fflush(stdout);
-	textures_map = load_textures("textures");
+	
 	//Change camera here, parameters are as follow: Position vec, Look-at vec, Up-direction vec, field-of-view angle (currently 50). 
 	Camera camera(Vec3(0, 5, -10), Vec3(0, 0, 0), Vec3(0, 6, -10), ((50 * 0.5) * M_PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 
-	//Add spheres here
-	std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(0,0,-5), 1, Color(1,0,0), diffuse));
-	//scene.push_back(sphere);
+	//Add spheres & planes here (only works with base tracer)
+	if (tree_type == none)
+	{
+		std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(3,1,-5), 1, Color(1,0,0), diffuse));
+		scene.push_back(sphere);
+		std::shared_ptr<Sphere> sphere1 = std::shared_ptr<Sphere>(new Sphere(Vec3(0,1,-5), 1, Color(1,0,0), phong));
+		scene.push_back(sphere1);
+		std::shared_ptr<Plane> plane = std::shared_ptr<Plane>(new Plane(Vec3(0, -1, 0), Vec3(0, 1, 0), Color(0.03,0.83,0.95), diffuse));
+		scene.push_back(plane);
+	}
 
-	//Add lights here
+	//Add lights
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	lights.push_back(light);
 

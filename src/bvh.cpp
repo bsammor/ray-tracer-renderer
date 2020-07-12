@@ -13,7 +13,6 @@ BVH::BVH(std::vector<std::shared_ptr<Object>> &prims, int max_prims) : max_prims
 
     int total_nodes = 0;
     std::vector<std::shared_ptr<Object>> ordered_prims;
-    //change totalnodes to reference later when oyoure done.
     BVH_node *root = build_hierarchy(prims_info, 0, primitives.size(), &total_nodes, ordered_prims);
 
     primitives.swap(ordered_prims);
@@ -48,8 +47,8 @@ BVH_node* BVH::build_hierarchy(std::vector<prim_info> &prims_info, int start, in
     } 
     else 
     {
-        Vec3 min = Vec3(maximum, maximum, maximum);
-        Vec3 max = Vec3(minimum, minimum, minimum);
+        Vec3 min = Vec3(max_val, max_val, max_val);
+        Vec3 max = Vec3(min_val, min_val, min_val);
         BBOX center_bounds(min, max);
 
         for (int i = start; i < end; ++i)

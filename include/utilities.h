@@ -1,3 +1,5 @@
+#ifndef UTILITIES_H
+#define UTILITIES_H
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include <tiny_obj_loader.h>
 #include <triangle.h>
@@ -131,3 +133,5 @@ void load_mesh(std::string inputfile, std::vector<std::shared_ptr<Object>> &scen
         }
     }
 }
+
+#endif

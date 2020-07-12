@@ -1,3 +1,5 @@
+#ifndef OCTREE_H
+#define OCTREE_H
 #include <vector>
 #include <tree.h>
 #include <object.h>
@@ -19,3 +21,5 @@ public:
     Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int depth = 0);
     bool intersect_tree(std::shared_ptr<Ray> ray) override;
 };
+
+#endif

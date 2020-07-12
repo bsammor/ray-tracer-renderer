@@ -2,8 +2,8 @@
 
 BBOX::BBOX() 
 {
-    min = Vec3(maximum, maximum, maximum);
-    max = Vec3(minimum, minimum, minimum);
+    min = Vec3(max_val, max_val, max_val);
+    max = Vec3(min_val, min_val, min_val);
 }
 
 BBOX::BBOX(Vec3 min, Vec3 max) 
