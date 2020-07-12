@@ -128,17 +128,20 @@ void setup_scene()
 	std::cout << "Loading scene " << fflush(stdout);
 	
 	//Change camera here, parameters are as follow: Position vec, Look-at vec, Up-direction vec, field-of-view angle (currently 50). 
-	Camera camera(Vec3(0, 5, -10), Vec3(0, 0, 0), Vec3(0, 6, -10), ((50 * 0.5) * M_PI / 180.0), (double)WIDTH/(double)HEIGHT);
+	Camera camera(Vec3(0, 1, 5), Vec3(0, 0, 0), Vec3(0, 2, 5), ((50 * 0.5) * M_PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
 
 	//Add spheres & planes here (only works with base tracer)
 	if (tree_type == none)
 	{
+		//Parameters: (position, radius, color, material type)
 		std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(3,1,-5), 1, Color(1,0,0), diffuse));
 		scene.push_back(sphere);
 		std::shared_ptr<Sphere> sphere1 = std::shared_ptr<Sphere>(new Sphere(Vec3(0,1,-5), 1, Color(1,0,0), phong));
 		scene.push_back(sphere1);
+
+		//Parameters: (position, direction/normal, color, material type)
 		std::shared_ptr<Plane> plane = std::shared_ptr<Plane>(new Plane(Vec3(0, -1, 0), Vec3(0, 1, 0), Color(0.03,0.83,0.95), diffuse));
 		scene.push_back(plane);
 	}
@@ -168,8 +171,6 @@ void setup_scene()
 
 int main(int argc, char *argv[]) 
 {
-	std::cout << "-------------------------------------------------------" << std::endl;
-	std::cout << "Ray Tracer is running" << std::endl;
 	if (argc > 1 && strcmp("kd", argv[1]) == 0) tree_type = kd;
 	else if (argc > 1 && strcmp("bvh", argv[1]) == 0) tree_type = bvh;
 	else if (argc > 1 && strcmp("octree", argv[1]) == 0) tree_type = octree;
@@ -181,6 +182,8 @@ int main(int argc, char *argv[])
 
 	no_threads = std::min(atoi(argv[3]), no_threads);
 
+	std::cout << "-------------------------------------------------------" << std::endl;
+	std::cout << "Ray Tracer is running" << std::endl;
 	std::cout << "Resolution: " << WIDTH << "x" << HEIGHT << std::endl;
 	std::cout << "Threads: " << no_threads << std::endl;
 
