@@ -35,19 +35,18 @@ bool Light::intersected(std::shared_ptr<Ray> ray, std::shared_ptr<Color> pixel, 
 	double t0 = (-b - std::sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
 	double t1 = (-b + std::sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
 
-	if (t0 > ray->get_tnear() && t0 < ray->get_tmax())
+	if (t0 > ray->tnear && t0 < ray->tmax)
 	{
-		ray->set_tmax(t0);
+		ray->tmax = t0;
 		return true;
 	}
-	else if (t1 > ray->get_tnear() && t1 < ray->get_tmax())
+	else if (t1 > ray->tnear && t1 < ray->tmax)
 	{
-		ray->set_tmax(t1);
+		ray->tmax = t1;
 		return true;
 	}
 
 	return false;
-
 }
 
 double Light::get_intensity()

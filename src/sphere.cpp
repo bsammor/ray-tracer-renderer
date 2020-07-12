@@ -1,5 +1,4 @@
 #include <sphere.h>
-#include <iostream>
 
 Sphere::Sphere()
 {
@@ -22,7 +21,7 @@ double Sphere::get_radius()
 	return radius;
 }
 
-bool Sphere::intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t)
+bool Sphere::intersected(std::shared_ptr<Ray> ray, int index)
 {
 	Vec3 length = ray->get_origin() - position;
 
@@ -33,20 +32,18 @@ bool Sphere::intersected(std::shared_ptr<Ray> ray, int index, double& u, double&
 	double t0 = (-b - std::sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
 	double t1 = (-b + std::sqrt(pow(b, 2) - 4 * a * c)) / (2 * a);
 
-	if (t0 > ray->get_tnear() && t0 < ray->get_tmax())
+	if (t0 > ray->tnear && t0 < ray->tmax)
 	{
-		ray->set_tmax(t0);
-		ray->set_index(index);
+		ray->tmax = t0;
+		ray->obj_index = index;
 		ray->fn = this->get_normal(ray->get_intersection_point());
-		t = t0;
 		return true;
 	}
-	else if (t1 > ray->get_tnear() && t1 < ray->get_tmax())
+	else if (t1 > ray->tnear && t1 < ray->tmax)
 	{
-		ray->set_tmax(t1);
-		ray->set_index(index);
+		ray->tmax = t1;
+		ray->obj_index = index;
 		ray->fn = this->get_normal(ray->get_intersection_point());
-		t = t1;
 		return true;
 	}
 
@@ -64,10 +61,6 @@ BBOX Sphere::get_bbox()
 	BBOX bbox;
 	bbox.min = Vec3(position.x - radius, position.y - radius, position.z - radius);
 	bbox.min = Vec3(position.x + radius, position.y + radius, position.z + radius);
+	
 	return bbox;
-}
-
-bool Sphere::intersectedP(std::shared_ptr<Ray> ray) const
-{
-	return false;
 }

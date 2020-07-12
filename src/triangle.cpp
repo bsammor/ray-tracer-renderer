@@ -1,38 +1,42 @@
 #include <triangle.h>
-#include <iostream>
-constexpr double BIAS = 1e-8;
-uint64_t numRayTrianglesTests = 0;
-uint64_t numRayTrianglesIsect = 0;
+uint64_t num_ray_prim_tests = 0;
+uint64_t num_ray_prim_isects = 0;
 
 Triangle::Triangle()
 {
     v0 = Vec3();
     v1 = Vec3(1, 1, 1);
     v2 = Vec3(2, 2, 2);
+    vt0 = Vec3();
+    vt1 = Vec3(1, 1, 1);
+    vt2 = Vec3(2, 2, 2);
     color = Color();
     material = diffuse;
     fn = (v1 - v0).cross_product(v2 - v0).normalize();
 }
 
-Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color, Material material)
+Triangle::Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Vec3 vt0, Vec3 vt1, Vec3 vt2, Color color, Material material)
 {
     this->v0 = v0;
     this->v1 = v1;
     this->v2 = v2;
+    this->vt0 = vt0;
+    this->vt1 = vt1;
+    this->vt2 = vt2;
     this->color = color;
     this->material = material;
     this->fn = (v1 - v0).cross_product(v2 - v0).normalize();
 }
 
-bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& t)
+bool Triangle::intersected(std::shared_ptr<Ray> ray, int index)
 {
-    //__sync_fetch_and_add(&numRayTrianglesTests, 1); 
+    double u, v, t;
+    //__sync_fetch_and_add(&num_ray_prim_tests, 1); 
     Vec3 v0v1 = v1 - v0;
     Vec3 v0v2 = v2 - v0;
     Vec3 pvec = ray->get_direction().cross_product(v0v2);
     float det = v0v1.dot_product(pvec);
 
-    // ray and triangle are parallel if det is close to 0
     if (fabs(det) < BIAS) return false;
 
     float invDet = 1 / det;
@@ -47,19 +51,19 @@ bool Triangle::intersected(std::shared_ptr<Ray> ray, int index, double& u, doubl
 
     t = v0v2.dot_product(qvec) * invDet;
 
-    if (t < ray->get_tmax()) 
+    if (t < ray->tmax) 
     {
-        ray->set_index(index);
+        ray->obj_index = index;
         ray->fn = this->fn;
-        ray->set_tmax(t);
+        ray->tmax = t;
         ray->tex = this->tex;
-        ray->hitcolor = this->color;
+        ray->hit_color = this->color;
         ray->u = u;
         ray->v = v;
         ray->vt0 = vt0;
         ray->vt1 = vt1;
         ray->vt2 = vt2;
-        //__sync_fetch_and_add(&numRayTrianglesIsect, 1); 
+        //__sync_fetch_and_add(&num_ray_prim_isects, 1); 
         return true;
     }
 
@@ -97,9 +101,4 @@ BBOX Triangle::get_bbox()
     if ( v2.z > bbox.max.z ) bbox.max.z = v2.z;
 
     return bbox;
-}
-
-bool Triangle::intersectedP(std::shared_ptr<Ray> ray) const
-{
-    return false;
 }

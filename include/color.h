@@ -3,9 +3,9 @@
 
 class Color
 {
-private:
-
 public:
+	double r, g, b;
+
 	Color();
 	Color(double r, double g, double b);
 	Color(double c);
@@ -17,8 +17,6 @@ public:
 
 	Color operator+=(Color c1);
 	Color operator+(Color c1);
-
-	double r, g, b;
 };
 
 #endif

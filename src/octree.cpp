@@ -18,9 +18,6 @@ void get_children_bbox(std::vector<BBOX> &children_bounds, BBOX parent_bounds)
     Vec3 corners[8] = {Vec3(min.x, min.y, min.z), Vec3(min.x, min.y, max.z), Vec3(min.x, max.y, min.z), Vec3(min.x, max.y, max.z), 
         Vec3(max.x, min.y, min.z), Vec3(max.x, min.y, max.z), Vec3(max.x, max.y, min.z), Vec3(max.x, max.y, max.z)};
 
-    //Vec3 corners[8] = {Vec3(min.x, min.y, max.z), Vec3(min.x, min.y, min.z), Vec3(min.x, max.y, max.z), Vec3(min.x, max.y, min.z), 
-        //Vec3(max.x, min.y, max.z), Vec3(max.x, min.y, min.z), Vec3(max.x, max.y, max.z), Vec3(max.x, max.y, min.z)};
-
     for (Vec3 v : corners)
     {
         BBOX child;
@@ -34,11 +31,9 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int depth)
 {
     for (int i = 0; i < 8; i ++)
         children[i] = NULL;
- 
     bounds = b;
-    if (p.size() < 1) 
-        return;
 
+    if (p.size() < 1) return;
     if (p.size() <= min_prims || depth >= max_depth)
     {
         this->primitives = p;
@@ -67,18 +62,18 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int depth)
 /*bool Octree::intersect_tree(std::shared_ptr<Ray> ray)
 {
     bool hit = false;
-    Vec3 invdir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
+    Vec3 inv_dir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
     int sign[3];
-    sign[0] = (invdir.x < 0); 
-    sign[1] = (invdir.y < 0); 
-    sign[2] = (invdir.z < 0); 
-    if (bounds.IntersectP(ray, invdir, sign))
+    sign[0] = (inv_dir.x < 0); 
+    sign[1] = (inv_dir.y < 0); 
+    sign[2] = (inv_dir.z < 0); 
+    if (bounds.IntersectP(ray, inv_dir, sign))
     {
         if (children[0] != NULL)
         {
             for (int i = 0; i < 8; i++)
             {
-                if (children[i]->bounds.IntersectP(ray, invdir, sign))
+                if (children[i]->bounds.IntersectP(ray, inv_dir, sign))
                     if (children[i]->intersect_tree(ray))
                         hit = true;
             }
@@ -100,37 +95,33 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int depth)
 
 int Octree::first_node(double tx0, double ty0, double tz0, double txm, double tym, double tzm)
 {
-    unsigned char answer = 0;   // initialize to 00000000
-    // select the entry plane and set bits
-    if(tx0 > ty0){
-        if(tx0 > tz0){ // PLANE YZ
-            if(tym < tx0) answer|=2;    // set bit at position 1
-            if(tzm < tx0) answer|=1;    // set bit at position 0
-            return (int) answer;
-        }
+    unsigned char answer = 0;  
+
+    if (tx0 > ty0 && tx0 > tz0)
+    {
+        if (tym < tx0) answer|=2;
+        if (tzm < tx0) answer|=1;
+        return (int) answer;
     }
-    else {
-        if(ty0 > tz0){ // PLANE XZ
-            if(txm < ty0) answer|=4;    // set bit at position 2
-            if(tzm < ty0) answer|=1;    // set bit at position 0
-            return (int) answer;
-        }
+    else if (ty0 > tz0) 
+    {
+        if(txm < ty0) answer|=4;  
+        if(tzm < ty0) answer|=1; 
+        return (int) answer;
     }
-    // PLANE XY
-    if(txm < tz0) answer|=4;    // set bit at position 2
-    if(tym < tz0) answer|=2;    // set bit at position 1
+
+    if (txm < tz0) answer|=4;    
+    if (tym < tz0) answer|=2;
+    
     return (int) answer;
 }
 
 int Octree::new_node(double txm, int x, double tym, int y, double tzm, int z)
 {
-    if(txm < tym){
-        if(txm < tzm){return x;}  // YZ plane
-    }
-    else{
-        if(tym < tzm){return y;} // XZ plane
-    }
-    return z; // XY plane;
+    if (txm < tym && txm < tzm) return x;
+    else if (tym < tzm) return y;
+
+    return z;
 }
 
 void Octree::proc_subtree (double tx0, double ty0, double tz0, double tx1, double ty1, double tz1, Octree *node, std::vector<Octree*> &hit_nodes, std::shared_ptr<Ray> ray)
@@ -138,8 +129,8 @@ void Octree::proc_subtree (double tx0, double ty0, double tz0, double tx1, doubl
     float txm, tym, tzm;
     int currNode;
 
-    if(tx1 < 0 || ty1 < 0 || tz1 < 0) return;
-    if(node->children[0] == NULL)
+    if (tx1 < 0 || ty1 < 0 || tz1 < 0) return;
+    if (node->children[0] == NULL)
     {
         hit_nodes.push_back(node);
         return;
@@ -192,48 +183,32 @@ void Octree::proc_subtree (double tx0, double ty0, double tz0, double tx1, doubl
 bool Octree::intersect_tree(std::shared_ptr<Ray> ray)
 {
     ray->a = 0;
-    bool hit = false;
+    bool intersected = false;
     std::vector<Octree*> hit_nodes;
 
-    if (ray->get_direction()[0] < 0)
-    {
-        ray->a |= 4 ;
-    }
-    if (ray->get_direction()[1] < 0)
-    {
-        ray->a |= 2 ; 
-    }
-    if (ray->get_direction()[2] < 0)
-    {
-        ray->a |= 1 ; 
-    }
+    if (ray->get_direction()[0] < 0) ray->a |= 4 ;
+    if (ray->get_direction()[1] < 0) ray->a |= 2 ; 
+    if (ray->get_direction()[2] < 0) ray->a |= 1 ; 
  
-    Vec3 invDir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
-    int dirIsNeg[3];
-    dirIsNeg[0] = (invDir.x < 0); 
-    dirIsNeg[1] = (invDir.y < 0); 
-    dirIsNeg[2] = (invDir.z < 0); 
+    Vec3 inv_dir = Vec3(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z); 
+    int dir_is_neg[3];
+    dir_is_neg[0] = (inv_dir.x < 0); 
+    dir_is_neg[1] = (inv_dir.y < 0); 
+    dir_is_neg[2] = (inv_dir.z < 0); 
 
-    double tx0 = (bounds[dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
-    double tx1 = (bounds[1 - dirIsNeg[0]].x - ray->get_origin().x) * invDir.x;
-    double ty0 = (bounds[dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
-    double ty1 = (bounds[1 - dirIsNeg[1]].y - ray->get_origin().y) * invDir.y;
-    double tz0 = (bounds[dirIsNeg[2]].z - ray->get_origin().z) * invDir.z;
-    double tz1 = (bounds[1 - dirIsNeg[2]].z - ray->get_origin().z) * invDir.z;
+    double tx0 = (bounds[dir_is_neg[0]].x - ray->get_origin().x) * inv_dir.x;
+    double tx1 = (bounds[1 - dir_is_neg[0]].x - ray->get_origin().x) * inv_dir.x;
+    double ty0 = (bounds[dir_is_neg[1]].y - ray->get_origin().y) * inv_dir.y;
+    double ty1 = (bounds[1 - dir_is_neg[1]].y - ray->get_origin().y) * inv_dir.y;
+    double tz0 = (bounds[dir_is_neg[2]].z - ray->get_origin().z) * inv_dir.z;
+    double tz1 = (bounds[1 - dir_is_neg[2]].z - ray->get_origin().z) * inv_dir.z;
 
-	if (bounds.IntersectP(ray, invDir, dirIsNeg))
-	{
-      proc_subtree(tx0,ty0,tz0,tx1,ty1,tz1,this, hit_nodes, ray);
-    }
+	if (bounds.intersected(ray, inv_dir, dir_is_neg)) proc_subtree(tx0,ty0,tz0,tx1,ty1,tz1,this, hit_nodes, ray);
 
-    double u, v, t;
+
     for (unsigned i = 0; i < hit_nodes.size(); i++)
-    {
         for (unsigned j = 0; j < hit_nodes[i]->primitives.size(); j++)
-        {
-            if (hit_nodes[i]->primitives[j]->intersected(ray, j, u, v, t))
-                hit = true;
-        }
-    }
-    return hit;
+            if (hit_nodes[i]->primitives[j]->intersected(ray, j)) intersected = true;
+
+    return intersected;
 }

@@ -7,11 +7,11 @@ class Plane : public Object
 private:
 	Vec3 normal;
 	Vec3 position;
+	
 public:
 	Plane();
 	Plane(Vec3 position, Vec3 normal, Color color, Material material);
-	bool intersected(std::shared_ptr<Ray> ray, int index, double& u, double& v, double& tmax) override;
-	bool intersectedP(std::shared_ptr<Ray> ray) const override;
+	bool intersected(std::shared_ptr<Ray> ray, int index) override;
 	Vec3 get_normal(Vec3 point) override;
 	BBOX get_bbox() override;
 };

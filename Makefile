@@ -1,10 +1,13 @@
 TARGET   = tracer
 IDIR = include
+IDIR1 = libraries
+thr = 512
+res = 1920x1080
 
 CC       = g++
-CFLAGS   = -I$(IDIR) -std=c++17 -Wall
+CFLAGS   = -I$(IDIR) -I$(IDIR1) -std=c++17 -Wall
 LINKER   = g++
-LFLAGS   = -Wall -I$(IDIR) -lm -lstdc++fs -lpthread -ljpeg 
+LFLAGS   = -Wall -I$(IDIR) -I$(IDIR1) -lm -lstdc++fs -lpthread -ljpeg 
 
 
 SRCDIR   = src
@@ -26,16 +29,16 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@echo "Compiled "$<" successfully!"
 
 run: $(TARGET)
-	./$(TARGET) $(args) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) "none" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-kd: $(TARGET)
-	./$(TARGET) "kd" $(args) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) "kd" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-bvh: $(TARGET)
-	./$(TARGET) "bvh" $(args) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) "bvh" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-octree: $(TARGET)
-	./$(TARGET) "octree" $(args) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) "octree" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 .PHONY: clean
 clean:

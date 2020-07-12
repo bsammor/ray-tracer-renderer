@@ -1,0 +1,16 @@
+"filename", "language", "C++", "comment", "blank", "total"
+"/home/sammour/Desktop/ray-tracer/src/bbox.cpp", "C++", 53, 0, 14, 67
+"/home/sammour/Desktop/ray-tracer/src/bvh.cpp", "C++", 195, 1, 29, 225
+"/home/sammour/Desktop/ray-tracer/src/camera.cpp", "C++", 22, 0, 6, 28
+"/home/sammour/Desktop/ray-tracer/src/color.cpp", "C++", 42, 0, 11, 53
+"/home/sammour/Desktop/ray-tracer/src/globals.cpp", "C++", 5, 0, 1, 6
+"/home/sammour/Desktop/ray-tracer/src/kdtree.cpp", "C++", 200, 0, 31, 231
+"/home/sammour/Desktop/ray-tracer/src/light.cpp", "C++", 49, 0, 12, 61
+"/home/sammour/Desktop/ray-tracer/src/main.cpp", "C++", 156, 6, 33, 195
+"/home/sammour/Desktop/ray-tracer/src/octree.cpp", "C++", 150, 34, 30, 214
+"/home/sammour/Desktop/ray-tracer/src/plane.cpp", "C++", 33, 0, 8, 41
+"/home/sammour/Desktop/ray-tracer/src/ray.cpp", "C++", 19, 0, 3, 22
+"/home/sammour/Desktop/ray-tracer/src/sphere.cpp", "C++", 54, 0, 12, 66
+"/home/sammour/Desktop/ray-tracer/src/triangle.cpp", "C++", 86, 2, 16, 104
+"/home/sammour/Desktop/ray-tracer/src/vec3.cpp", "C++", 123, 0, 35, 158
+"Total", "-", 1187, 43, 241, 1471

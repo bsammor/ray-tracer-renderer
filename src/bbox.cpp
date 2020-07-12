@@ -1,13 +1,9 @@
 #include <bbox.h>
-#include <iostream>
-#include <limits>
 
 BBOX::BBOX() 
 {
-    double min_num = std::numeric_limits<double>::lowest();
-    double max_num = std::numeric_limits<double>::max();
-    min = Vec3(max_num, max_num, max_num);
-    max = Vec3(min_num, min_num, min_num);
+    min = Vec3(maximum, maximum, maximum);
+    max = Vec3(minimum, minimum, minimum);
 }
 
 BBOX::BBOX(Vec3 min, Vec3 max) 
@@ -18,7 +14,7 @@ BBOX::BBOX(Vec3 min, Vec3 max)
 
 Vec3 BBOX::get_center()
 {
-    return (max + min) * 0.5;
+    return min * 0.5 + max * 0.5;
 }
 
 BBOX BBOX::union_bbox(BBOX b1, BBOX b2) 
@@ -50,34 +46,22 @@ Vec3 BBOX::offset(Vec3 &p) const
     if (max.x > min.x) o.x /= max.x - min.x;
     if (max.y > min.y) o.y /= max.y - min.y;
     if (max.z > min.z) o.z /= max.z - min.z;
+
     return o;
 }
 
 double BBOX::surface_area() const
 {
     Vec3 d = diagonal();
+    
     return 2 * (d.x * d.y + d.x * d.z + d.y * d.z);
 }
 
-void BBOX::expand(Vec3 p) 
-{
-    min = Vec3(std::min(min.x, p.x), std::min(min.y, p.y), std::min(min.z, p.z));
-    max = Vec3(std::max(max.x, p.x), std::max(max.y, p.y), std::max(max.z, p.z));
-}
-
-void BBOX::expand(BBOX b)
-{
-    min = Vec3(std::min(min.x, b.min.x), std::min(min.y, b.min.y), std::min(min.z, b.min.z));
-    max = Vec3(std::max(max.x, b.max.x), std::max(max.y, b.max.y), std::max(max.z, b.max.z));
-}
-
-int BBOX::MaximumExtent() const 
+int BBOX::maximum_extent() const 
 {
     Vec3 d = diagonal();
-    if (d.x > d.y && d.x > d.z)
-        return 0;
-    else if (d.y > d.z)
-        return 1;
-    else
-        return 2;
+    if (d.x > d.y && d.x > d.z) return 0;
+    else if (d.y > d.z) return 1;
+    
+    return 2;
 }

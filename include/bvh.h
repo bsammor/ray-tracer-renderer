@@ -1,76 +1,74 @@
 #ifndef BVH_H
 #define BVH_H
 #include <vector>
-#include <iostream>
-#include <memory>
 #include <object.h>
-#include <bbox.h>
 #include <tree.h>
-#include <atomic>
 #include <algorithm>
 
-struct BVHBuildNode {
-    void InitLeaf(int first, int n, const BBOX &b) {
-        firstPrimOffset = first;
-        nPrimitives = n;
+struct bucket_info 
+{
+    int count = 0;
+    BBOX bounds;
+};
+
+struct BVH_node
+{
+    BBOX bounds;
+    BVH_node *children[2];
+    int axis, first_prim_offset, prims_count;
+
+    void init_leaf(int first, int num, const BBOX &b)
+    {
         bounds = b;
+        first_prim_offset = first;
+        prims_count = num;
         children[0] = children[1] = nullptr;
     }
-    void InitInterior(int axis, BVHBuildNode *c0, BVHBuildNode *c1) {
+    void init_interior(int dim, BVH_node *c0, BVH_node *c1)
+    {
+        axis = dim;
         children[0] = c0;
         children[1] = c1;
         bounds = BBOX::union_bbox(c0->bounds, c1->bounds);
-        splitAxis = axis;
-        nPrimitives = 0;
+        prims_count = 0;
     }
-    BBOX bounds;
-    BVHBuildNode *children[2];
-    int splitAxis, firstPrimOffset, nPrimitives;
 };
 
-struct BVHPrimitiveInfo {
-    BVHPrimitiveInfo(size_t primitiveNumber, BBOX &bounds)
-        : primitiveNumber(primitiveNumber), bounds(bounds),
-          centroid(bounds.min * 0.5 + bounds.max * .5) { }
-    size_t primitiveNumber;
-    BBOX bounds;
-    Vec3 centroid;
-};
-
-struct LinearBVHNode {
-    BBOX bounds;
-    union {
-        int primitivesOffset;    // leaf
-        int secondChildOffset;   // interior
-    };
-    uint16_t nPrimitives;  // 0 -> interior node
-    uint8_t axis;          // interior node: xyz
-    uint8_t pad[1];        // ensure 32 byte total size
-};
-
-
-// BVHAccel Declarations
-class BVHAccel : public Tree
+struct prim_info
 {
-  public:
-    // BVHAccel Public Methods
-    BVHAccel(std::vector<std::shared_ptr<Object>> &p,
-             int maxPrimsInNode = 1);
-    BBOX WorldBound() const;
-    bool intersect_tree(std::shared_ptr<Ray> ray);
-    bool IntersectP(std::shared_ptr<Ray> ray) const;
+    size_t prim_index;
+    BBOX bounds;
+    Vec3 center;
 
-  private:
-    // BVHAccel Private Methods
-    BVHBuildNode *recursiveBuild(std::vector<BVHPrimitiveInfo> &primitiveInfo,
-        int start, int end, int *totalNodes,
-        std::vector<std::shared_ptr<Object>> &orderedPrims);
-    int flattenBVHTree(BVHBuildNode *node, int *offset);
+    prim_info(size_t prim_index, BBOX &bounds) : prim_index(prim_index), bounds(bounds), center(bounds.get_center()) { }
+};
 
-    // BVHAccel Private Data
-    int maxPrimsInNode;
+struct linear_BVH_node
+{
+    uint16_t prims_count;
+    uint8_t axis;        
+    uint8_t pad[1];
+    BBOX bounds;
+    union 
+    {
+        int prims_offset;
+        int second_child_offset;
+    };        
+};
+
+class BVH : public Tree
+{
+private:
+    int max_prims;
     std::vector<std::shared_ptr<Object>> primitives;
-    LinearBVHNode *nodes = nullptr;
+    linear_BVH_node *nodes = nullptr;
+
+    BVH_node* build_hierarchy(std::vector<prim_info> &prims_info, int start, int end, int *total_nodes, std::vector<std::shared_ptr<Object>> &ordered_prims);
+    int flatten_hierarchy(BVH_node *node, int *offset);
+
+public:
+    BVH(std::vector<std::shared_ptr<Object>> &prims, int max_prims);
+    bool intersect_tree(std::shared_ptr<Ray> ray) override;
 };
 
 #endif

@@ -1,225 +1,225 @@
 #include <bvh.h>
 
-BBOX BVHAccel::WorldBound() const {
-    return nodes ? nodes[0].bounds : BBOX();
-}
-
-BVHAccel::BVHAccel(std::vector<std::shared_ptr<Object>> &p,
-         int maxPrimsInNode)
-     : maxPrimsInNode(std::min(255, maxPrimsInNode)), primitives(p)
+BVH::BVH(std::vector<std::shared_ptr<Object>> &prims, int max_prims) : max_prims(std::min(max_prims, 255)), primitives(prims)
 {
-    if (primitives.size() == 0)
-        return;
-    std::vector<BVHPrimitiveInfo> primitiveInfo;
-    for (size_t i = 0; i < primitives.size(); ++i) {
+    if (primitives.size() == 0) return;
+
+    std::vector<prim_info> prims_info;
+    for (size_t i = 0; i < primitives.size(); ++i) 
+    {
         BBOX temp = primitives[i]->get_bbox();
-        primitiveInfo.push_back(BVHPrimitiveInfo(i, temp));
+        prims_info.push_back(prim_info(i, temp));
     }
-    int totalNodes = 0;
-    std::vector<std::shared_ptr<Object>> orderedPrims;
-    BVHBuildNode *root;
-    root = recursiveBuild(primitiveInfo, 0, primitives.size(),
-                            &totalNodes, orderedPrims);
-    primitives.swap(orderedPrims);
+
+    int total_nodes = 0;
+    std::vector<std::shared_ptr<Object>> ordered_prims;
+    //change totalnodes to reference later when oyoure done.
+    BVH_node *root = build_hierarchy(prims_info, 0, primitives.size(), &total_nodes, ordered_prims);
+
+    primitives.swap(ordered_prims);
     
-    nodes = new LinearBVHNode[totalNodes];
+    nodes = new linear_BVH_node[total_nodes];
     int offset = 0;
-    flattenBVHTree(root, &offset);
+    flatten_hierarchy(root, &offset);
 }
 
+BVH_node* BVH::build_hierarchy(std::vector<prim_info> &prims_info, int start, int end, int *total_nodes, std::vector<std::shared_ptr<Object>> &ordered_prims)
+{
+    BVH_node *node = new BVH_node();
+    (*total_nodes)++;
 
-BVHBuildNode *BVHAccel::recursiveBuild(std::vector<BVHPrimitiveInfo> &primitiveInfo, int start,
-        int end, int *totalNodes,
-        std::vector<std::shared_ptr<Object>> &orderedPrims) {
-    BVHBuildNode *node = new BVHBuildNode();
-    (*totalNodes)++;
-    //<<Compute bounds of all primitives in BVH node>> 
-       BBOX bounds;
-       for (int i = start; i < end; ++i)
-           bounds = BBOX::union_bbox(bounds, primitiveInfo[i].bounds);
+    BBOX bounds;
+    for (int i = start; i < end; ++i)
+        bounds = BBOX::union_bbox(bounds, prims_info[i].bounds);
 
-    int nPrimitives = end - start;
-    if (nPrimitives == 1) {
-        //<<Create leaf BVHBuildNode>> 
-           int firstPrimOffset = orderedPrims.size();
-           for (int i = start; i < end; ++i) {
-               int primNum = primitiveInfo[i].primitiveNumber;
-               orderedPrims.push_back(primitives[primNum]);
-           }
-           node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
-           return node;
+    int prims_count = end - start;
 
-    } else {
-        //<<Compute bound of primitive centroids, choose split dimension dim>> 
-           double minNum = std::numeric_limits<double>::lowest();
-           double maxNum = std::numeric_limits<double>::max();
-           Vec3 pMin = Vec3(maxNum, maxNum, maxNum);
-           Vec3 pMax = Vec3(minNum, minNum, minNum);
-           BBOX centroidBounds(pMin, pMax);
-           for (int i = start; i < end; ++i)
-               centroidBounds = BBOX::union_bbox(centroidBounds, primitiveInfo[i].centroid);
-           int dim = centroidBounds.MaximumExtent();
+    if (prims_count == 1) 
+    {
+        int first_prim_offset = ordered_prims.size();
+        for (int i = start; i < end; ++i) 
+        {
+            int prim_index = prims_info[i].prim_index;
+            ordered_prims.push_back(primitives[prim_index]);
+        }
+        node->init_leaf(first_prim_offset, prims_count, bounds);
 
-        //<<Partition primitives into two sets and build children>> 
-           int mid = (start + end) / 2;
-           if (centroidBounds.max[dim] == centroidBounds.min[dim]) {
-               //<<Create leaf BVHBuildNode>> 
-                  int firstPrimOffset = orderedPrims.size();
-                  for (int i = start; i < end; ++i) {
-                      int primNum = primitiveInfo[i].primitiveNumber;
-                      orderedPrims.push_back(primitives[primNum]);
-                  }
-                  node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
-                  return node;
+        return node;
+    } 
+    else 
+    {
+        Vec3 min = Vec3(maximum, maximum, maximum);
+        Vec3 max = Vec3(minimum, minimum, minimum);
+        BBOX center_bounds(min, max);
 
-           } else {
-               //<<Partition primitives based on splitMethod>> 
-                      //<<Partition primitives using approximate SAH>> 
-                         if (nPrimitives <= 4) {
-                             //<<Partition primitives into equally sized subsets>> 
-                                mid = (start + end) / 2;
-                                std::nth_element(&primitiveInfo[start], &primitiveInfo[mid], 
-                                                 &primitiveInfo[end-1]+1,
-                                    [dim](const BVHPrimitiveInfo &a, const BVHPrimitiveInfo &b) { 
-                                        return a.centroid[dim] < b.centroid[dim];
-                                    });
+        for (int i = start; i < end; ++i)
+            center_bounds = BBOX::union_bbox(center_bounds, prims_info[i].center);
+        int dim = center_bounds.maximum_extent();
 
-                         } else {
-                             //<<Allocate BucketInfo for SAH partition buckets>> 
-                                constexpr int nBuckets = 12;
-                                struct BucketInfo {
-                                    int count = 0;
-                                    BBOX bounds;
-                                };
-                                BucketInfo buckets[nBuckets];
+        int mid = (start + end) / 2;
 
-                             //<<Initialize BucketInfo for SAH partition buckets>> 
-                                for (int i = start; i < end; ++i) {
-                                    int b = nBuckets * 
-                                        centroidBounds.offset(primitiveInfo[i].centroid)[dim];
-                                    if (b == nBuckets) b = nBuckets - 1;
-                                    buckets[b].count++;
-                                    buckets[b].bounds = BBOX::union_bbox(buckets[b].bounds, primitiveInfo[i].bounds);
-                                }
+        if (center_bounds.max[dim] == center_bounds.min[dim]) 
+        {
+            int first_prim_offset = ordered_prims.size();
+            for (int i = start; i < end; ++i) 
+            {
+                int prim_index = prims_info[i].prim_index;
+                ordered_prims.push_back(primitives[prim_index]);
+            }
+            node->init_leaf(first_prim_offset, prims_count, bounds);
 
-                             //<<Compute costs for splitting after each bucket>> 
-                                double cost[nBuckets - 1];
-                                for (int i = 0; i < nBuckets - 1; ++i) {
-                                    BBOX b0, b1;
-                                    int count0 = 0, count1 = 0;
-                                    for (int j = 0; j <= i; ++j) {
-                                        b0 = BBOX::union_bbox(b0, buckets[j].bounds);
-                                        count0 += buckets[j].count;
-                                    }
-                                    for (int j = i+1; j < nBuckets; ++j) {
-                                        b1 = BBOX::union_bbox(b1, buckets[j].bounds);
-                                        count1 += buckets[j].count;
-                                    }
-                                    cost[i] = .125f + (count0 * b0.surface_area() +
-                                                       count1 * b1.surface_area()) / bounds.surface_area();
-                                }
+            return node;
+        } 
+        else 
+        {
+            if (prims_count <= 4) 
+            {
+                mid = (start + end) / 2;
+                std::nth_element(&prims_info[start], &prims_info[mid], &prims_info[end-1]+1, [dim](const prim_info &a, const prim_info &b) 
+                { return a.center[dim] < b.center[dim];});
+            } 
+            else 
+            {
+                constexpr int bucket_count = 12;
+                bucket_info buckets[bucket_count];
 
-                             //<<Find bucket to split at that minimizes SAH metric>> 
-                                double minCost = cost[0];
-                                int minCostSplitBucket = 0;
-                                for (int i = 1; i < nBuckets - 1; ++i) {
-                                    if (cost[i] < minCost) {
-                                        minCost = cost[i];
-                                        minCostSplitBucket = i;
-                                    }
-                                }
+                for (int i = start; i < end; ++i) 
+                {
+                    int b = bucket_count * center_bounds.offset(prims_info[i].center)[dim];
+                    if (b == bucket_count) b = bucket_count - 1;
+                    buckets[b].count++;
+                    buckets[b].bounds = BBOX::union_bbox(buckets[b].bounds, prims_info[i].bounds);
+                }
 
-                             //<<Either create leaf or split primitives at selected SAH bucket>> 
-                                double leafCost = nPrimitives;
-                                if (nPrimitives > maxPrimsInNode || minCost < leafCost) {
-                                    BVHPrimitiveInfo *pmid = std::partition(&primitiveInfo[start],
-                                        &primitiveInfo[end-1]+1, 
-                                        [=](BVHPrimitiveInfo &pi) {
-                                            int b = nBuckets * centroidBounds.offset(pi.centroid)[dim];
-                                            if (b == nBuckets) b = nBuckets - 1;
-                                            return b <= minCostSplitBucket;
-                                        });
-                                    mid = pmid - &primitiveInfo[0];
-                                } else {
-                                    //<<Create leaf BVHBuildNode>> 
-                                       int firstPrimOffset = orderedPrims.size();
-                                       for (int i = start; i < end; ++i) {
-                                           int primNum = primitiveInfo[i].primitiveNumber;
-                                           orderedPrims.push_back(primitives[primNum]);
-                                       }
-                                       node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
-                                       return node;
+                double cost[bucket_count - 1];
 
-                                }
+                for (int i = 0; i < bucket_count - 1; ++i) 
+                {
+                    BBOX b0, b1;
+                    int count0 = 0, count1 = 0;
+                    for (int j = 0; j <= i; ++j) 
+                    {
+                        b0 = BBOX::union_bbox(b0, buckets[j].bounds);
+                        count0 += buckets[j].count;
+                    }
+                    for (int j = i+1; j < bucket_count; ++j) 
+                    {
+                        b1 = BBOX::union_bbox(b1, buckets[j].bounds);
+                        count1 += buckets[j].count;
+                    }
+                    cost[i] = 0.125 + (count0 * b0.surface_area() +
+                                        count1 * b1.surface_area()) / bounds.surface_area();
+                }
 
-                         }
+                double min_cost = cost[0];
+                int min_bucket_index = 0;
+                for (int i = 1; i < bucket_count - 1; ++i) 
+                {
+                    if (cost[i] < min_cost) 
+                    {
+                        min_cost = cost[i];
+                        min_bucket_index = i;
+                    }
+                }
 
-               node->InitInterior(dim,
-                                  recursiveBuild(primitiveInfo, start, mid,
-                                                 totalNodes, orderedPrims),
-                                  recursiveBuild(primitiveInfo, mid, end,
-                                                 totalNodes, orderedPrims));
-           }
+                double leaf_cost = prims_count;
+                if (prims_count > max_prims || min_cost < leaf_cost) 
+                {
+                    prim_info *pmid = std::partition(&prims_info[start], &prims_info[end-1]+1, [=](prim_info &pi) 
+                    {
+                        int b = bucket_count * center_bounds.offset(pi.center)[dim];
+                        if (b == bucket_count) b = bucket_count - 1;
 
+                        return b <= min_bucket_index;
+                    });
+                    mid = pmid - &prims_info[0];
+                } 
+                else 
+                {
+                    int first_prim_offset = ordered_prims.size();
+                    for (int i = start; i < end; ++i) {
+                        int prim_index = prims_info[i].prim_index;
+                        ordered_prims.push_back(primitives[prim_index]);
+                    }
+                    node->init_leaf(first_prim_offset, prims_count, bounds);
+
+                    return node;
+                }
+            }
+
+            node->init_interior(dim, build_hierarchy(prims_info, start, mid, total_nodes, ordered_prims), 
+                build_hierarchy(prims_info, mid, end, total_nodes, ordered_prims));
+        }
     }
     return node;
 }
 
-int BVHAccel::flattenBVHTree(BVHBuildNode *node, int *offset) {
-    LinearBVHNode *linearNode = &nodes[*offset];
-    linearNode->bounds = node->bounds;
-    int myOffset = (*offset)++;
-    if (node->nPrimitives > 0) {
-        linearNode->primitivesOffset = node->firstPrimOffset;
-        linearNode->nPrimitives = node->nPrimitives;
-    } else {
-           linearNode->axis = node->splitAxis;
-           linearNode->nPrimitives = 0;
-           flattenBVHTree(node->children[0], offset);
-           linearNode->secondChildOffset =
-               flattenBVHTree(node->children[1], offset);
+int BVH::flatten_hierarchy(BVH_node *node, int *offset)
+{
+    linear_BVH_node *linear_node = &nodes[*offset];
+    linear_node->bounds = node->bounds;
+    int my_offset = (*offset)++;
 
+    if (node->prims_count > 0) 
+    {
+        linear_node->prims_offset = node->first_prim_offset;
+        linear_node->prims_count = node->prims_count;
+    } 
+    else 
+    {
+        linear_node->axis = node->axis;
+        linear_node->prims_count = 0;
+        flatten_hierarchy(node->children[0], offset);
+        linear_node->second_child_offset = flatten_hierarchy(node->children[1], offset);
     }
-    return myOffset;
+
+    return my_offset;
 }
 
-bool BVHAccel::intersect_tree(std::shared_ptr<Ray> ray) 
+bool BVH::intersect_tree(std::shared_ptr<Ray> ray)
 {
-    bool hit = false;
-    Vec3 invDir(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z);
-    int dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
-       int toVisitOffset = 0, currentNodeIndex = 0;
-       int nodesToVisit[64];
-       while (true) {
-           const LinearBVHNode *node = &nodes[currentNodeIndex];
-              if (node->bounds.IntersectP(ray, invDir, dirIsNeg)) {
-                  if (node->nPrimitives > 0) {
-                         for (int i = 0; i < node->nPrimitives; ++i) 
-                            {
-                                double u, v, t;
-                                ray->intersections++;
-                                if (primitives[node->primitivesOffset + i]->intersected(ray, node->primitivesOffset + i, u, v, t))
-                                 hit = true;
-                            }
-                         if (toVisitOffset == 0) break;
-                         currentNodeIndex = nodesToVisit[--toVisitOffset];
+    bool intersected = false;
 
-                  } else {
-                         if (dirIsNeg[node->axis]) {
-                            nodesToVisit[toVisitOffset++] = currentNodeIndex + 1;
-                            currentNodeIndex = node->secondChildOffset;
-                         } else {
-                            nodesToVisit[toVisitOffset++] = node->secondChildOffset;
-                            currentNodeIndex = currentNodeIndex + 1;
-                         }
+    Vec3 inv_dir(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z);
+    int dir_is_neg[3] = { inv_dir.x < 0, inv_dir.y < 0, inv_dir.z < 0 };
+    int visit_offset = 0, node_index = 0;
+    int nodes_left[64];
+    
+    while (true) 
+    {
+        const linear_BVH_node *node = &nodes[node_index];
+        if (node->bounds.intersected(ray, inv_dir, dir_is_neg)) 
+        {
+            if (node->prims_count > 0) 
+            {
+                for (int i = 0; i < node->prims_count; ++i) 
+                {
+                    if (primitives[node->prims_offset + i]->intersected(ray, node->prims_offset + i))
+                        intersected = true;
+                }
+                if (visit_offset == 0) break;
+                node_index = nodes_left[--visit_offset];
+            } 
+            else 
+            {
+                if (dir_is_neg[node->axis]) 
+                {
+                    nodes_left[visit_offset++] = node_index + 1;
+                    node_index = node->second_child_offset;
+                } 
+                else 
+                {
+                    nodes_left[visit_offset++] = node->second_child_offset;
+                    node_index = node_index + 1;
+                }
+            }
+        } 
+        else 
+        {
+            if (visit_offset == 0) break;
+            node_index = nodes_left[--visit_offset];
+        }
+    }
 
-                  }
-              } else {
-                  if (toVisitOffset == 0) break;
-                  currentNodeIndex = nodesToVisit[--toVisitOffset];
-              }
-
-       }
-
-    return hit;
+    return intersected;
 }

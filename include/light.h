@@ -1,9 +1,7 @@
 #ifndef LIGHT_H
 #define LIGHT_H
-#include "color.h"
-#include "ray.h"
+#include <ray.h>
 #include <memory>
-#include <cmath>
 
 class Light
 {
@@ -11,6 +9,7 @@ private:
 	Vec3 position;
 	Color color;
 	double intensity;
+
 public:
 	Light();
 	Light(Vec3 position, Color color, double intensity);

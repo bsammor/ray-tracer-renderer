@@ -16,27 +16,16 @@ Plane::Plane(Vec3 position, Vec3 direction, Color color, Material material)
 	this->material = material;
 }
 
-
-bool Plane::intersected(std::shared_ptr<Ray> ray, int index, double &u, double &v, double& t)
+bool Plane::intersected(std::shared_ptr<Ray> ray, int index)
 {
-	// First, check if we intersect
+	double t;
 	double dDotN = ray->get_direction().dot_product(normal);
 
-	if (dDotN == 0.0)
-	{
-		// We just assume the ray is not embedded in the plane
-		return false;
-	}
+	if (dDotN == 0.0) return false;
+	t = (position - ray->get_origin()).dot_product(normal) / dDotN;
 
-	// Find point of intersection
-	t = (position - ray->get_origin()).dot_product(normal)
-		/ dDotN;
-
-	if (t <= ray->get_tnear() || t >= ray->get_tmax())
-	{
-		// Outside relevant range
-		return false;
-	}
+	if (t <= ray->tnear || t >= ray->tmax) return false;
+	ray->tmax = t;
 
 	return true;
 }
@@ -49,9 +38,4 @@ Vec3 Plane::get_normal(Vec3 point)
 BBOX Plane::get_bbox() 
 {
 	return BBOX();
-}
-
-bool Plane::intersectedP(std::shared_ptr<Ray> ray) const
-{
-    return false;
 }
