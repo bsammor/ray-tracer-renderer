@@ -11,14 +11,18 @@ Requires g++ and Makefile
 
 Type "make" in root directory to compile & build
 
-# Running
- To run the base ray tracer with multi-threading only, type "make run"
- 
- To run the ray tracer with a KD-tree, type "make run-kd"
+Type "make clean" to delete the object files
 
- To run the tracer with a BVH, type "make run-bvh"
+Type "make remove" to delete the binary executable
+
+# Running
+To run the base ray tracer with multi-threading only, type "make run"
  
- To run the tracer with an Octree, type "make run-octree"
+To run the ray tracer with a KD-tree, type "make run-kd"
+
+To run the tracer with a BVH, type "make run-bvh"
+ 
+To run the tracer with an Octree, type "make run-octree"
  
 # Resolution
 The default resolution of the rendered images is 1920x1080. To select a custom resolution before running the tracer, add res="resolutionhere" to the make run command
