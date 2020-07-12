@@ -1,6 +1,5 @@
 ## A ray tracer done in C++ with the following optimizations:
 * CPU Multi-threading
-* Bounding Boxes
 * Bounding Volume Hierarchies using Surface Area Heuristics
 * KD-trees using Surface Area Heuristics
 * Octrees
@@ -13,27 +12,48 @@ Requires g++ and Makefile
 Type "make" in root directory to compile & build
 
 # Running
- To run the default ray tracer with multi-threading and simple bounding boxes only, type "make run" or ./tracer
+ To run the base ray tracer with multi-threading only, type "make run"
  
- To run the ray tracer with a KD-tree, type "make run-kd" or ./tracer kd
+ To run the ray tracer with a KD-tree, type "make run-kd"
+
+ To run the tracer with a BVH, type "make run-bvh"
  
- To run the tracer with a BVH, type "make run-bvh" or ./tracer bvh
+ To run the tracer with an Octree, type "make run-octree"
  
- To run the tracer with an Octree, type "make run-octree" or ./tracer octree
- 
+# Resolution
+The default resolution of the rendered images is 1920x1080. To select a custom resolution before running the tracer, add res="resolutionhere" to the make run command
+
+Example:
+* make run-octree res="640x480"
+  
 # Multi-threading
-The ray tracer runs by default using the maximum number of threads available to the CPU.
+The ray tracer runs by default using the maximum number of threads available to the CPU
 
-To specify the number of threads instead, add args="number here" to the make run command or add the number as a second argument to ./tracer
+To specify the number of threads instead, add thr="number" to the make run command
 
-Examples: 
-* make run-kd args="7"  
-* ./tracer kd 7
- 
-# Triangle Meshes
-The tracer's loader can only load the wavefront or .obj 3d model format (can be adjusted by changing the used loader tiny_obj_loader.h)
+Example: 
+* make run-kd thr="7"  
 
-Add the required textures in the /textures directory
+# 3D Models
+The tracer's loader can only load the wavefront or .obj 3D model format
 
-Place the model and the materials in the models directory
+Add the model textures in the /textures directory
+
+Place the model and the materials in the /models directory
+
+To specifiy what models to load into the scene, add models="models/modelname.obj" to the make run command. Multiple models can be loaded by adding them with a space inbetween.
+
+Examples:
+* make run-bvh models="models/teapot.obj"
+* make run-bvh models="models/teapot.obj models/bunny.obj"
+
+# Notes
+To adjust the scene (camera, add spheres/planes, lights), open main.cpp and look for the setup_scene() function. There you will find the code to adjust with some information.
+
+The texture coordinates (for mapping) of a model must be between 0 and 1. If a texture uses coordinates outside the range, it will not work properly.
+
+# Online References
+* scratchapixel.com
+* pbr-book.org (Phyiscally Based Rendering: From Theory To Implementation)
+* flipcode.com/archives/articles.shtml
 
