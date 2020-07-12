@@ -7,7 +7,7 @@
 # Compiling
 The ray tracer can be compiled on a linux system or windows ubuntu subsystem.
 
-Requires g++ and Makefile
+**Requires g++ and Makefile**
 
 Type "make" in root directory to compile & build
 
