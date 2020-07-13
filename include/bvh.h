@@ -1,3 +1,5 @@
+// Theory and Implementation insipred by 
+// http://www.pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Bounding_Volume_Hierarchies.html
 #ifndef BVH_H
 #define BVH_H
 #include <vector>

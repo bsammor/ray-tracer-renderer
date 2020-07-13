@@ -1,3 +1,6 @@
+// Theory and Implementation inspired by 
+// https://www.youtube.com/watch?v=RIgc5J_ZGu8&list=PLAqGIYgEAxrUO6ODA0pnLkM2UOijerFPv
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes
 #ifndef PLANE_H
 #define PLANE_H
 #include "object.h"

@@ -59,6 +59,8 @@ void start_thread(const unsigned start, const unsigned end, Color *image, Camera
 		if (tree_type == none) *pixel = cast_ray(camera_ray, scene, lights);
 		else if (tree->intersect_tree(camera_ray))
 		{
+			*pixel = Color(1,0,0);
+			continue;
 			//simple shading code for structures
 			Color color = camera_ray->hit_color;
 
@@ -127,7 +129,8 @@ void setup_scene()
 	std::cout << "--------------------------------------------------------" << std::endl;
 	std::cout << "Loading scene " << fflush(stdout);
 	
-	//Change camera here, parameters are as follow: Position vec, Look-at vec, Up-direction vec, field-of-view angle (currently 50). 
+	//Change camera here
+	//Parameters: Position, Look-at, Up-direction, field-of-view angle (currently 50). 
 	Camera camera(Vec3(0, 1, 5), Vec3(0, 0, 0), Vec3(0, 2, 5), ((50 * 0.5) * M_PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;
@@ -135,18 +138,19 @@ void setup_scene()
 	//Add spheres & planes here (only works with base tracer)
 	if (tree_type == none)
 	{
-		//Parameters: (position, radius, color, material type)
+		//Parameters: (position, radius, color, material type (diffuse, reflective, phong))
 		std::shared_ptr<Sphere> sphere = std::shared_ptr<Sphere>(new Sphere(Vec3(3,1,-5), 1, Color(1,0,0), diffuse));
 		scene.push_back(sphere);
 		std::shared_ptr<Sphere> sphere1 = std::shared_ptr<Sphere>(new Sphere(Vec3(0,1,-5), 1, Color(1,0,0), phong));
 		scene.push_back(sphere1);
 
-		//Parameters: (position, direction/normal, color, material type)
+		//Parameters: (position, direction/normal, color, material type (diffuse, reflective, phong))
 		std::shared_ptr<Plane> plane = std::shared_ptr<Plane>(new Plane(Vec3(0, -1, 0), Vec3(0, 1, 0), Color(0.03,0.83,0.95), diffuse));
 		scene.push_back(plane);
 	}
 
 	//Add lights
+	//Parameters: position, color, intensity
 	Light light(Vec3(0.0, 5.0, 0.0), Color(1), 500);
 	lights.push_back(light);
 

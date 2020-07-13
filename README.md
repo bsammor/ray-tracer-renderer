@@ -56,6 +56,10 @@ To adjust the scene (camera, add spheres/planes, lights), open main.cpp and look
 
 The texture coordinates (for mapping) of a model must be between 0 and 1. If a texture uses coordinates outside the range, it will not work properly.
 
+You can use all three extra commands above at the same time.
+
+Adjusting header files will require a make clean.
+
 # Online References
 * scratchapixel.com
 * pbr-book.org (Phyiscally Based Rendering: From Theory To Implementation)

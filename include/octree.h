@@ -1,3 +1,6 @@
+// Theory and Implementation inspired by
+// https://www.flipcode.com/archives/Octree_Implementation.shtml
+// An Efficient Parametric Algorithm for Octree Traversal by Revelles et .al 
 #ifndef OCTREE_H
 #define OCTREE_H
 #include <vector>

@@ -1,3 +1,5 @@
+// Theory and Implementation insipred by 
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 #include <object.h>

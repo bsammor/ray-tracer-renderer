@@ -1,3 +1,7 @@
+// Theory and Implementation insipred by 
+// www.scratchapixel.com/lessons/advanced-rendering/introduction-acceleration-structure/bounding-volume
+// www.pbr-book.org/3ed-2018/Geometry_and_Transformations/Bounding_Boxes.html
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes
 #ifndef BBOX_H
 #define BBOX_H
 #include <ray.h>

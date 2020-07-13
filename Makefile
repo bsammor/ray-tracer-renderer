@@ -29,16 +29,16 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@echo "Compiled "$<" successfully!"
 
 run: $(TARGET)
-	./$(TARGET) "none" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) none $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-kd: $(TARGET)
-	./$(TARGET) "kd" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) kd $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-bvh: $(TARGET)
-	./$(TARGET) "bvh" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) bvh $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 run-octree: $(TARGET)
-	./$(TARGET) "octree" $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
+	./$(TARGET) octree $(res) $(thr) $(models) && mogrify -format png -- pictures/*.ppm && rm -f pictures/*.ppm
 
 .PHONY: clean
 clean:

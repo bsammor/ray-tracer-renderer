@@ -1,3 +1,5 @@
+// Theory and Implementation insipred by 
+// http://www.pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Kd-Tree_Accelerator.html
 #ifndef KDTREE_h
 #define KDTREE_h
 #include <object.h>

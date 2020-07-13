@@ -1,3 +1,5 @@
+// Theory and Implementation insipred by 
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/introduction-to-shading/shading-spherical-light
 #ifndef LIGHT_H
 #define LIGHT_H
 #include <ray.h>

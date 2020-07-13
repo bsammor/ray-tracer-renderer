@@ -1,3 +1,5 @@
+// Theory and Implementation inspired by
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes
 #ifndef SPHERE_H
 #define SPHERE_H
 #include <object.h>

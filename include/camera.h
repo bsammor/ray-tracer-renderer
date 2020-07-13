@@ -1,3 +1,7 @@
+// Theory and Implementation insipred by 
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/3d-viewing-pinhole-camera
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays
+// https://www.youtube.com/watch?v=LRN_ewuN_k4&list=PLAqGIYgEAxrUO6ODA0pnLkM2UOijerFPv&index=6
 #ifndef CAMERA_H
 #define CAMERA_H
 #include <ray.h>

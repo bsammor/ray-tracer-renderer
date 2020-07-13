@@ -1,3 +1,4 @@
+// Theory and Implementation insipred by scratchapixel.com
 #ifndef NAIVE_TRACER_H
 #define NAIVE_TRACER_H
 extern std::map<std::string,Texture> textures_map;
@@ -181,7 +182,7 @@ inline Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Obje
 					specular += light.get_color() * light.get_intensity() / (4 * M_PI * r2) * std::pow(std::max(0.0, R.dot_product(ray->get_direction() * -1)), 10) * covered;
 				}
 
-				color = diffuse * 0 + specular * 1;
+				color = diffuse * 0.8 + specular * 0.2;
 
 				return color;
 			}
