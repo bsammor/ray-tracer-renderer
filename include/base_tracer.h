@@ -13,6 +13,7 @@ std::shared_ptr<Ray> create_reflection_ray(std::shared_ptr<Ray> ray, std::shared
 	return std::shared_ptr<Ray>(new Ray(point, direction.normalize(), MINIMUM, INFINITY));
 }
 
+// Find refraction direction
 Vec3 refract(Vec3 I, Vec3 N, double ior)
 {
 	double cosi = clamp(-1, 1, I.dot_product(N));
@@ -32,6 +33,7 @@ Vec3 refract(Vec3 I, Vec3 N, double ior)
 	return k < 0 ? Vec3() : I * eta  + n * (eta * cosi - sqrt(k));
 }
 
+// compute light transmitted & light reflected
 double fresnel(Vec3& I, Vec3& N, double ior)
 {
 	double kr = 0;
@@ -54,6 +56,7 @@ double fresnel(Vec3& I, Vec3& N, double ior)
 	return kr;
 }
 
+// Check for intersections with primitives
 bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene, ray_type type)
 {
 	bool intersected = false;
@@ -70,6 +73,7 @@ bool trace(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene,
 	return intersected;
 }
 
+// Main base tracer function, handles checking intersections and shading
 inline Color cast_ray(std::shared_ptr<Ray> ray, std::vector<std::shared_ptr<Object>> scene, std::vector<Light> lights, int depth = 0) 
 {
 	if (depth < 5) 

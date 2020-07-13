@@ -1,38 +1,42 @@
-Date : 2020-07-13 00:42:13
-Directory : /home/sammour/Desktop/ray-tracer/src
-Total : 14 files,  1200 codes, 42 comments, 240 blanks, all 1482 lines
+Date : 2020-07-13 04:06:46
+Directory : /home/sammour/Desktop/ray-tracer/include
+Total : 18 files,  726 codes, 26 comments, 161 blanks, all 913 lines
 
 Languages
 +----------+------------+------------+------------+------------+------------+
 | language | files      | code       | comment    | blank      | total      |
 +----------+------------+------------+------------+------------+------------+
-| C++      |         14 |      1,200 |         42 |        240 |      1,482 |
+| C++      |         18 |        726 |         26 |        161 |        913 |
 +----------+------------+------------+------------+------------+------------+
 
 Directories
-+---------------------------------------------------+------------+------------+------------+------------+------------+
-| path                                              | files      | code       | comment    | blank      | total      |
-+---------------------------------------------------+------------+------------+------------+------------+------------+
-| .                                                 |         14 |      1,200 |         42 |        240 |      1,482 |
-+---------------------------------------------------+------------+------------+------------+------------+------------+
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                   | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                      |         18 |        726 |         26 |        161 |        913 |
++--------------------------------------------------------+------------+------------+------------+------------+------------+
 
 Files
-+---------------------------------------------------+----------+------------+------------+------------+------------+
-| filename                                          | language | code       | comment    | blank      | total      |
-+---------------------------------------------------+----------+------------+------------+------------+------------+
-| /home/sammour/Desktop/ray-tracer/src/bbox.cpp     | C++      |         53 |          0 |         14 |         67 |
-| /home/sammour/Desktop/ray-tracer/src/bvh.cpp      | C++      |        195 |          0 |         29 |        224 |
-| /home/sammour/Desktop/ray-tracer/src/camera.cpp   | C++      |         22 |          0 |          6 |         28 |
-| /home/sammour/Desktop/ray-tracer/src/color.cpp    | C++      |         42 |          0 |         11 |         53 |
-| /home/sammour/Desktop/ray-tracer/src/globals.cpp  | C++      |          5 |          0 |          1 |          6 |
-| /home/sammour/Desktop/ray-tracer/src/kdtree.cpp   | C++      |        200 |          0 |         31 |        231 |
-| /home/sammour/Desktop/ray-tracer/src/light.cpp    | C++      |         49 |          0 |         12 |         61 |
-| /home/sammour/Desktop/ray-tracer/src/main.cpp     | C++      |        168 |          6 |         31 |        205 |
-| /home/sammour/Desktop/ray-tracer/src/octree.cpp   | C++      |        150 |         34 |         30 |        214 |
-| /home/sammour/Desktop/ray-tracer/src/plane.cpp    | C++      |         34 |          0 |          9 |         43 |
-| /home/sammour/Desktop/ray-tracer/src/ray.cpp      | C++      |         19 |          0 |          3 |         22 |
-| /home/sammour/Desktop/ray-tracer/src/sphere.cpp   | C++      |         54 |          0 |         12 |         66 |
-| /home/sammour/Desktop/ray-tracer/src/triangle.cpp | C++      |         86 |          2 |         16 |        104 |
-| /home/sammour/Desktop/ray-tracer/src/vec3.cpp     | C++      |        123 |          0 |         35 |        158 |
-| Total                                             |          |      1,200 |         42 |        240 |      1,482 |
-+---------------------------------------------------+----------+------------+------------+------------+------------+
++--------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                               | language | code       | comment    | blank      | total      |
++--------------------------------------------------------+----------+------------+------------+------------+------------+
+| /home/sammour/Desktop/ray-tracer/include/base_tracer.h | C++      |        154 |          2 |         39 |        195 |
+| /home/sammour/Desktop/ray-tracer/include/bbox.h        | C++      |         57 |          4 |         11 |         72 |
+| /home/sammour/Desktop/ray-tracer/include/bvh.h         | C++      |         64 |          2 |         10 |         76 |
+| /home/sammour/Desktop/ray-tracer/include/camera.h      | C++      |         15 |          4 |          5 |         24 |
+| /home/sammour/Desktop/ray-tracer/include/color.h       | C++      |         16 |          0 |          8 |         24 |
+| /home/sammour/Desktop/ray-tracer/include/globals.h     | C++      |          8 |          0 |          2 |         10 |
+| /home/sammour/Desktop/ray-tracer/include/kdtree.h      | C++      |         83 |          2 |         10 |         95 |
+| /home/sammour/Desktop/ray-tracer/include/light.h       | C++      |         20 |          2 |          3 |         25 |
+| /home/sammour/Desktop/ray-tracer/include/object.h      | C++      |         22 |          0 |          6 |         28 |
+| /home/sammour/Desktop/ray-tracer/include/octree.h      | C++      |         19 |          3 |          4 |         26 |
+| /home/sammour/Desktop/ray-tracer/include/plane.h       | C++      |         16 |          3 |          6 |         25 |
+| /home/sammour/Desktop/ray-tracer/include/ray.h         | C++      |         32 |          0 |          9 |         41 |
+| /home/sammour/Desktop/ray-tracer/include/sphere.h      | C++      |         17 |          2 |          3 |         22 |
+| /home/sammour/Desktop/ray-tracer/include/texture.h     | C++      |         20 |          0 |          5 |         25 |
+| /home/sammour/Desktop/ray-tracer/include/tree.h        | C++      |         14 |          0 |          3 |         17 |
+| /home/sammour/Desktop/ray-tracer/include/triangle.h    | C++      |         17 |          2 |          4 |         23 |
+| /home/sammour/Desktop/ray-tracer/include/utilities.h   | C++      |        115 |          0 |         22 |        137 |
+| /home/sammour/Desktop/ray-tracer/include/vec3.h        | C++      |         37 |          0 |         11 |         48 |
+| Total                                                  |          |        726 |         26 |        161 |        913 |
++--------------------------------------------------------+----------+------------+------------+------------+------------+

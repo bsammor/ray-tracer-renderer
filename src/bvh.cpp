@@ -79,9 +79,11 @@ BVH_node* BVH::build_hierarchy(std::vector<prim_info> &prims_info, int start, in
             } 
             else 
             {
+                // create buckets
                 constexpr int bucket_count = 12;
                 bucket_info buckets[bucket_count];
 
+                // calculate buckets information
                 for (int i = start; i < end; ++i) 
                 {
                     int b = bucket_count * center_bounds.offset(prims_info[i].center)[dim];
@@ -92,6 +94,7 @@ BVH_node* BVH::build_hierarchy(std::vector<prim_info> &prims_info, int start, in
 
                 double cost[bucket_count - 1];
 
+                // calculate cost of each bucket
                 for (int i = 0; i < bucket_count - 1; ++i) 
                 {
                     BBOX b0, b1;
@@ -106,10 +109,12 @@ BVH_node* BVH::build_hierarchy(std::vector<prim_info> &prims_info, int start, in
                         b1 = BBOX::union_bbox(b1, buckets[j].bounds);
                         count1 += buckets[j].count;
                     }
+                    // SAH
                     cost[i] = 0.125 + (count0 * b0.surface_area() +
                                         count1 * b1.surface_area()) / bounds.surface_area();
                 }
 
+                // choose least cost bucket
                 double min_cost = cost[0];
                 int min_bucket_index = 0;
                 for (int i = 1; i < bucket_count - 1; ++i) 
@@ -178,7 +183,7 @@ int BVH::flatten_hierarchy(BVH_node *node, int *offset)
 bool BVH::intersect_tree(std::shared_ptr<Ray> ray)
 {
     bool intersected = false;
-
+    
     Vec3 inv_dir(1 / ray->get_direction().x, 1 / ray->get_direction().y, 1 / ray->get_direction().z);
     int dir_is_neg[3] = { inv_dir.x < 0, inv_dir.y < 0, inv_dir.z < 0 };
     int visit_offset = 0, node_index = 0;

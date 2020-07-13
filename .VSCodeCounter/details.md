@@ -1,29 +1,33 @@
 # Details
 
-Date : 2020-07-13 00:42:13
+Date : 2020-07-13 04:06:46
 
-Directory /home/sammour/Desktop/ray-tracer/src
+Directory /home/sammour/Desktop/ray-tracer/include
 
-Total : 14 files,  1200 codes, 42 comments, 240 blanks, all 1482 lines
+Total : 18 files,  726 codes, 26 comments, 161 blanks, all 913 lines
 
 [summary](results.md)
 
 ## Files
 | filename | language | code | comment | blank | total |
 | :--- | :--- | ---: | ---: | ---: | ---: |
-| [src/bbox.cpp](/src/bbox.cpp) | C++ | 53 | 0 | 14 | 67 |
-| [src/bvh.cpp](/src/bvh.cpp) | C++ | 195 | 0 | 29 | 224 |
-| [src/camera.cpp](/src/camera.cpp) | C++ | 22 | 0 | 6 | 28 |
-| [src/color.cpp](/src/color.cpp) | C++ | 42 | 0 | 11 | 53 |
-| [src/globals.cpp](/src/globals.cpp) | C++ | 5 | 0 | 1 | 6 |
-| [src/kdtree.cpp](/src/kdtree.cpp) | C++ | 200 | 0 | 31 | 231 |
-| [src/light.cpp](/src/light.cpp) | C++ | 49 | 0 | 12 | 61 |
-| [src/main.cpp](/src/main.cpp) | C++ | 168 | 6 | 31 | 205 |
-| [src/octree.cpp](/src/octree.cpp) | C++ | 150 | 34 | 30 | 214 |
-| [src/plane.cpp](/src/plane.cpp) | C++ | 34 | 0 | 9 | 43 |
-| [src/ray.cpp](/src/ray.cpp) | C++ | 19 | 0 | 3 | 22 |
-| [src/sphere.cpp](/src/sphere.cpp) | C++ | 54 | 0 | 12 | 66 |
-| [src/triangle.cpp](/src/triangle.cpp) | C++ | 86 | 2 | 16 | 104 |
-| [src/vec3.cpp](/src/vec3.cpp) | C++ | 123 | 0 | 35 | 158 |
+| [include/base_tracer.h](/include/base_tracer.h) | C++ | 154 | 2 | 39 | 195 |
+| [include/bbox.h](/include/bbox.h) | C++ | 57 | 4 | 11 | 72 |
+| [include/bvh.h](/include/bvh.h) | C++ | 64 | 2 | 10 | 76 |
+| [include/camera.h](/include/camera.h) | C++ | 15 | 4 | 5 | 24 |
+| [include/color.h](/include/color.h) | C++ | 16 | 0 | 8 | 24 |
+| [include/globals.h](/include/globals.h) | C++ | 8 | 0 | 2 | 10 |
+| [include/kdtree.h](/include/kdtree.h) | C++ | 83 | 2 | 10 | 95 |
+| [include/light.h](/include/light.h) | C++ | 20 | 2 | 3 | 25 |
+| [include/object.h](/include/object.h) | C++ | 22 | 0 | 6 | 28 |
+| [include/octree.h](/include/octree.h) | C++ | 19 | 3 | 4 | 26 |
+| [include/plane.h](/include/plane.h) | C++ | 16 | 3 | 6 | 25 |
+| [include/ray.h](/include/ray.h) | C++ | 32 | 0 | 9 | 41 |
+| [include/sphere.h](/include/sphere.h) | C++ | 17 | 2 | 3 | 22 |
+| [include/texture.h](/include/texture.h) | C++ | 20 | 0 | 5 | 25 |
+| [include/tree.h](/include/tree.h) | C++ | 14 | 0 | 3 | 17 |
+| [include/triangle.h](/include/triangle.h) | C++ | 17 | 2 | 4 | 23 |
+| [include/utilities.h](/include/utilities.h) | C++ | 115 | 0 | 22 | 137 |
+| [include/vec3.h](/include/vec3.h) | C++ | 37 | 0 | 11 | 48 |
 
 [summary](results.md)

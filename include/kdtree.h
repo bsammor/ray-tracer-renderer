@@ -1,5 +1,5 @@
 // Theory and Implementation insipred by 
-// http://www.pbr-book.org/3ed-2018/Primitives_and_Intersection_Acceleration/Kd-Tree_Accelerator.html
+// Physically Based Rendering: From Theory To Implementation, 3rd edition
 #ifndef KDTREE_h
 #define KDTREE_h
 #include <object.h>
@@ -76,6 +76,7 @@ class KDtree : public Tree
 {
 private:
     const int isect_cost, traversal_cost, min_prims;
+    int max_depth;
     const double empty_bonus;
     std::vector<std::shared_ptr<Object>> primitives;
     std::vector<int> prims_indices;
@@ -87,8 +88,8 @@ private:
          int depth, const std::unique_ptr<bound_edge[]> edges[3], int *prims0, int *prims1, int bad_refines = 0);
 
 public:
-    KDtree(const std::vector<std::shared_ptr<Object>> &prims, int isect_cost = 80, int traversal_cost = 1, 
-        double empty_bonus = 0.5, int min_prims = 1, int max_depth = -1);
+    KDtree(const std::vector<std::shared_ptr<Object>> &prims, int isect_cost, int traversal_cost, 
+        double empty_bonus, int min_prims);
     bool intersect_tree(std::shared_ptr<Ray> ray) override;
 };
 

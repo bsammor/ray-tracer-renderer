@@ -13,11 +13,11 @@ static unsigned int log2_int(unsigned int val)
     return ret;
 }
 
-KDtree::KDtree(const std::vector<std::shared_ptr<Object>> &prims, int isect_cost, int traversal_cost, double empty_bonus, int min_prims, int max_depth)
+KDtree::KDtree(const std::vector<std::shared_ptr<Object>> &prims, int isect_cost, int traversal_cost, double empty_bonus, int min_prims)
     : isect_cost(isect_cost), traversal_cost(traversal_cost), min_prims(min_prims), empty_bonus(empty_bonus), primitives(prims) 
 {
     next_free_node = nodes_count = 0;
-    if (max_depth <= 0) max_depth = std::round(8 + 1.3f * log2_int(primitives.size()));
+    max_depth = std::round(8 + 1.3f * log2_int(primitives.size()));
 
     std::vector<BBOX> prim_bounds;
     for (const std::shared_ptr<Object> &prim : primitives) 
@@ -104,6 +104,7 @@ void KDtree::build_tree(int node_index, const BBOX &node_bounds, const std::vect
                 double p_below = below_SA * inv_total_SA; 
                 double p_above = above_SA * inv_total_SA;
                 double b_e = (num_above == 0 || num_below == 0) ? empty_bonus : 0;
+                // SAH
                 double cost = traversal_cost + isect_cost * (1 - b_e) * (p_below * num_below + p_above * num_above);
                 if (cost < best_cost)  
                 {
@@ -140,12 +141,11 @@ void KDtree::build_tree(int node_index, const BBOX &node_bounds, const std::vect
         double t_split = edges[best_axis][best_offset].t;
         BBOX bounds0 = node_bounds, bounds1 = node_bounds;
         bounds0.max[best_axis] = bounds1.min[best_axis] = t_split;
-        build_tree(node_index + 1, bounds0, allprim_bounds, prims0, n0,
-                depth - 1, edges, prims0, prims1 + prims_count, bad_refines);
-        int aboveChild = next_free_node;
-        nodes[node_index].init_interior(best_axis, aboveChild, t_split);
-        build_tree(aboveChild, bounds1, allprim_bounds, prims1, n1, 
-                depth - 1, edges, prims0, prims1 + prims_count, bad_refines);
+        build_tree(node_index + 1, bounds0, allprim_bounds, prims0, n0, depth - 1, edges, prims0, prims1 + prims_count, bad_refines);
+
+        int above_child = next_free_node;
+        nodes[node_index].init_interior(best_axis, above_child, t_split);
+        build_tree(above_child, bounds1, allprim_bounds, prims1, n1, depth - 1, edges, prims0, prims1 + prims_count, bad_refines);
 }
 
 bool KDtree::intersect_tree(std::shared_ptr<Ray> ray) 
@@ -195,7 +195,6 @@ bool KDtree::intersect_tree(std::shared_ptr<Ray> ray)
                 node = first_child;
                 tmax = tPlane;
             }
-
         } 
         else 
         {

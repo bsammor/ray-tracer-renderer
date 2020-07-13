@@ -1,5 +1,4 @@
 #include <octree.h>
-#include <iostream>
 
 bool is_overlapping(BBOX tri_bounds, BBOX child_bounds)
 {
@@ -16,6 +15,7 @@ void get_children_bbox(std::vector<BBOX> &children_bounds, BBOX parent_bounds)
     Vec3 max = parent_bounds.max;
     Vec3 center = parent_bounds.get_center();
 
+    // 8 corners of the bbox
     Vec3 corners[8] = {Vec3(min.x, min.y, min.z), Vec3(min.x, min.y, max.z), Vec3(min.x, max.y, min.z), Vec3(min.x, max.y, max.z), 
         Vec3(max.x, min.y, min.z), Vec3(max.x, min.y, max.z), Vec3(max.x, max.y, min.z), Vec3(max.x, max.y, max.z)};
 
@@ -35,6 +35,7 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, unsigned ma
 
     bounds = b;
 
+    // check exit conditions
     if (p.size() < 1) return;
     if (p.size() <= min_prims || depth >= max_depth)
     {
@@ -47,7 +48,7 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, unsigned ma
     
     for (int i = 0; i < 8; i++)
     {
-        //figure out which primitives belong in this child using the bbox from previous step
+        //figure out which primitives belong in this child using bbox overlaps
         std::vector<std::shared_ptr<Object>> childp;
         for (unsigned j = 0; j < p.size(); j++)
         {
@@ -82,7 +83,7 @@ int Octree::first_node(double tx0, double ty0, double tz0, double txm, double ty
     return (int) result;
 }
 
-int Octree::new_node(double txm, int x, double tym, int y, double tzm, int z)
+int Octree::next_node(double txm, int x, double tym, int y, double tzm, int z)
 {
     if (txm < tym && txm < tzm) return x;
     else if (tym < tzm) return y;
@@ -106,56 +107,56 @@ void Octree::proc_subtree(double tx0, double ty0, double tz0, double tx1, double
     tym = (ty0 + ty1)/2;
     tzm = (tz0 + tz1)/2;
 
-    curr_node = first_node(tx0,ty0,tz0,txm,tym,tzm);
+    curr_node = first_node(tx0, ty0, tz0, txm, tym, tzm);
     do
     {
         switch (curr_node)
         {
             case 0: 
             { 
-                proc_subtree(tx0,ty0,tz0,txm,tym,tzm,node->children[ray->a], hit_nodes, ray);
-                curr_node = new_node(txm,4,tym,2,tzm,1);
+                proc_subtree(tx0, ty0, tz0, txm, tym, tzm, node->children[ray->a], hit_nodes, ray);
+                curr_node = next_node(txm, 4, tym, 2, tzm, 1);
                 break;
             }
             case 1: 
             { 
-                proc_subtree(tx0,ty0,tzm,txm,tym,tz1,node->children[1^ray->a], hit_nodes, ray);
-                curr_node = new_node(txm,5,tym,3,tz1,8);
+                proc_subtree(tx0, ty0, tzm, txm, tym, tz1, node->children[1^ray->a], hit_nodes, ray);
+                curr_node = next_node(txm, 5, tym, 3, tz1, 8);
                 break;
             }
             case 2: 
             { 
-                proc_subtree(tx0,tym,tz0,txm,ty1,tzm,node->children[2^ray->a], hit_nodes, ray);
-                curr_node = new_node(txm,6,ty1,8,tzm,3);
+                proc_subtree(tx0, tym, tz0, txm, ty1, tzm, node->children[2^ray->a], hit_nodes, ray);
+                curr_node = next_node(txm, 6, ty1, 8, tzm, 3);
                 break;
             }
             case 3: 
             { 
-                proc_subtree(tx0,tym,tzm,txm,ty1,tz1,node->children[3^ray->a], hit_nodes, ray);
-                curr_node = new_node(txm,7,ty1,8,tz1,8);
+                proc_subtree(tx0, tym, tzm, txm, ty1, tz1, node->children[3^ray->a], hit_nodes, ray);
+                curr_node = next_node(txm, 7, ty1, 8, tz1, 8);
                 break;
             }
             case 4: 
             { 
-                proc_subtree(txm,ty0,tz0,tx1,tym,tzm,node->children[4^ray->a], hit_nodes, ray);
-                curr_node = new_node(tx1,8,tym,6,tzm,5);
+                proc_subtree(txm, ty0, tz0, tx1, tym, tzm, node->children[4^ray->a], hit_nodes, ray);
+                curr_node = next_node(tx1, 8, tym, 6, tzm, 5);
                 break;
             }
             case 5: 
             { 
-                proc_subtree(txm,ty0,tzm,tx1,tym,tz1,node->children[5^ray->a], hit_nodes, ray);
-                curr_node = new_node(tx1,8,tym,7,tz1,8);
+                proc_subtree(txm, ty0, tzm, tx1, tym, tz1, node->children[5^ray->a], hit_nodes, ray);
+                curr_node = next_node(tx1, 8, tym, 7, tz1, 8);
                 break;
             }
             case 6: 
             { 
-                proc_subtree(txm,tym,tz0,tx1,ty1,tzm,node->children[6^ray->a], hit_nodes, ray);
-                curr_node = new_node(tx1,8,ty1,8,tzm,7);
+                proc_subtree(txm, tym, tz0, tx1, ty1, tzm, node->children[6^ray->a], hit_nodes, ray);
+                curr_node = next_node(tx1, 8, ty1, 8, tzm, 7);
                 break;
             }
             case 7: 
             { 
-                proc_subtree(txm,tym,tzm,tx1,ty1,tz1,node->children[7^ray->a], hit_nodes, ray);
+                proc_subtree(txm, tym, tzm, tx1, ty1, tz1, node->children[7^ray->a], hit_nodes, ray);
                 curr_node = 8;
                 break;
             }
@@ -186,7 +187,7 @@ bool Octree::intersect_tree(std::shared_ptr<Ray> ray)
     double tz0 = (bounds[dir_is_neg[2]].z - ray->get_origin().z) * inv_dir.z;
     double tz1 = (bounds[1 - dir_is_neg[2]].z - ray->get_origin().z) * inv_dir.z;
 
-	if (bounds.intersected(ray, inv_dir, dir_is_neg)) proc_subtree(tx0,ty0,tz0,tx1,ty1,tz1,this, hit_nodes, ray);
+	if (bounds.intersected(ray, inv_dir, dir_is_neg)) proc_subtree(tx0, ty0, tz0, tx1, ty1, tz1, this, hit_nodes, ray);
 
     for (unsigned i = 0; i < hit_nodes.size(); i++)
         for (unsigned j = 0; j < hit_nodes[i]->primitives.size(); j++)
