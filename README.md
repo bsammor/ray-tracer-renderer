@@ -45,7 +45,9 @@ Add the model textures in the /textures directory
 
 Place the model and the materials in the /models directory
 
-To specifiy what models to load into the scene, add models="models/modelname.obj" to the make run command. Multiple models can be loaded by adding them with a space inbetween.
+To specifiy what models to load into the scene, add models="models/modelname.obj" to the make run command 
+
+Multiple models can be loaded by adding them with a space inbetween
 
 Examples:
 * make run-bvh models="models/teapot.obj"
