@@ -54,6 +54,8 @@ Examples:
 # Notes
 To adjust the scene (camera, add spheres/planes, lights), open main.cpp and look for the setup_scene() function. There you will find the code to adjust with some information.
 
+To adjust the acceleration structures parameters, open main.cpp and look for the create_accel_structure() function. There you will find information to change them.
+
 The texture coordinates (for mapping) of a model must be between 0 and 1. If a texture uses coordinates outside the range, it will not work properly.
 
 You can use all three extra commands above at the same time.

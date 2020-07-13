@@ -28,10 +28,11 @@ void get_children_bbox(std::vector<BBOX> &children_bounds, BBOX parent_bounds)
     }
 }
 
-Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int depth)
+Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, unsigned max_depth, unsigned min_prims, unsigned depth)
 {
     for (int i = 0; i < 8; i ++)
         children[i] = nullptr;
+
     bounds = b;
 
     if (p.size() < 1) return;
@@ -54,7 +55,7 @@ Octree::Octree(const std::vector<std::shared_ptr<Object>> p, BBOX b, int depth)
                 childp.push_back(p[j]);
         }
 
-        children[i] = new Octree(childp, children_bounds[i], depth+1);
+        children[i] = new Octree(childp, children_bounds[i], max_depth, min_prims, depth+1);
     }
 }
 

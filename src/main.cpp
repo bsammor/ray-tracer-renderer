@@ -27,7 +27,9 @@ Tree* create_accel_struct(std::vector<std::shared_ptr<Object>> &scene)
 {	
 	switch (tree_type)
 	{
-		case kd: return new KDtree(scene);
+		//Parameters: scene, isect_cost, traverse_cost, b_e, min_prims
+		case kd: return new KDtree(scene, 80, 1, 0.5, 1);
+		//Parameters: scene, min_prims
 		case bvh: return new BVH(scene, 1);
 		case octree: 
 		{
@@ -37,7 +39,8 @@ Tree* create_accel_struct(std::vector<std::shared_ptr<Object>> &scene)
 				BBOX b = prim->get_bbox();
 				bounds = BBOX::union_bbox(bounds, b);
 			}
-			return new Octree(scene, bounds);
+			//Parameters: scene, world_bound, max_depth, min_prims
+			return new Octree(scene, bounds, 8, 1);
 		}
 		case none: return nullptr;
 	}
@@ -59,8 +62,6 @@ void start_thread(const unsigned start, const unsigned end, Color *image, Camera
 		if (tree_type == none) *pixel = cast_ray(camera_ray, scene, lights);
 		else if (tree->intersect_tree(camera_ray))
 		{
-			*pixel = Color(1,0,0);
-			continue;
 			//simple shading code for structures
 			Color color = camera_ray->hit_color;
 
@@ -131,6 +132,9 @@ void setup_scene()
 	
 	//Change camera here
 	//Parameters: Position, Look-at, Up-direction, field-of-view angle (currently 50). 
+	//Default camera: Vec3(0, 1, 5), Vec3(0, 0, 0), Vec3(0, 2, 5)
+	//Room camera: Vec3(0, 5, 5), Vec3(0, 2, 0), Vec3(0, 6, 5)
+	//Gallery camera: Vec3(0, 5, -10), Vec3(0, 0, 0), Vec3(0, 6, -10)
 	Camera camera(Vec3(0, 1, 5), Vec3(0, 0, 0), Vec3(0, 2, 5), ((50 * 0.5) * M_PI / 180.0), (double)WIDTH/(double)HEIGHT);
 	std::vector<std::shared_ptr<Object>> scene;
 	std::vector<Light> lights;

@@ -61,7 +61,7 @@ struct linear_BVH_node
 class BVH : public Tree
 {
 private:
-    int max_prims;
+    int min_prims;
     std::vector<std::shared_ptr<Object>> primitives;
     linear_BVH_node *nodes = nullptr;
 
@@ -69,7 +69,7 @@ private:
     int flatten_hierarchy(BVH_node *node, int *offset);
 
 public:
-    BVH(std::vector<std::shared_ptr<Object>> &prims, int max_prims);
+    BVH(std::vector<std::shared_ptr<Object>> &prims, int min_prims);
     bool intersect_tree(std::shared_ptr<Ray> ray) override;
 };
 

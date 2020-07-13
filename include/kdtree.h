@@ -75,7 +75,7 @@ struct KD_todo
 class KDtree : public Tree
 {
 private:
-    const int isect_cost, traversal_cost, max_prims;
+    const int isect_cost, traversal_cost, min_prims;
     const double empty_bonus;
     std::vector<std::shared_ptr<Object>> primitives;
     std::vector<int> prims_indices;
@@ -88,7 +88,7 @@ private:
 
 public:
     KDtree(const std::vector<std::shared_ptr<Object>> &prims, int isect_cost = 80, int traversal_cost = 1, 
-        double empty_bonus = 0.5, int max_prims = 1, int max_depth = -1);
+        double empty_bonus = 0.5, int min_prims = 1, int max_depth = -1);
     bool intersect_tree(std::shared_ptr<Ray> ray) override;
 };
 

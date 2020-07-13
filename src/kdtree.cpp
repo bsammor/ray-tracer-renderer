@@ -13,8 +13,8 @@ static unsigned int log2_int(unsigned int val)
     return ret;
 }
 
-KDtree::KDtree(const std::vector<std::shared_ptr<Object>> &prims,int isect_cost, int traversal_cost, double empty_bonus,int max_prims, int max_depth)
-    : isect_cost(isect_cost), traversal_cost(traversal_cost), max_prims(max_prims), empty_bonus(empty_bonus), primitives(prims) 
+KDtree::KDtree(const std::vector<std::shared_ptr<Object>> &prims, int isect_cost, int traversal_cost, double empty_bonus, int min_prims, int max_depth)
+    : isect_cost(isect_cost), traversal_cost(traversal_cost), min_prims(min_prims), empty_bonus(empty_bonus), primitives(prims) 
 {
     next_free_node = nodes_count = 0;
     if (max_depth <= 0) max_depth = std::round(8 + 1.3f * log2_int(primitives.size()));
@@ -60,7 +60,7 @@ void KDtree::build_tree(int node_index, const BBOX &node_bounds, const std::vect
     }
     ++next_free_node;
 
-    if (prims_count <= max_prims || depth == 0) 
+    if (prims_count <= min_prims || depth == 0) 
     {
         nodes[node_index].init_leaf(prim_nums, prims_count, &prims_indices);
         return;

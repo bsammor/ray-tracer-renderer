@@ -1,6 +1,6 @@
 #include <bvh.h>
 
-BVH::BVH(std::vector<std::shared_ptr<Object>> &prims, int max_prims) : max_prims(std::min(max_prims, 255)), primitives(prims)
+BVH::BVH(std::vector<std::shared_ptr<Object>> &prims, int min_prims) : min_prims(std::min(min_prims, 255)), primitives(prims)
 {
     if (primitives.size() == 0) return;
 
@@ -122,7 +122,7 @@ BVH_node* BVH::build_hierarchy(std::vector<prim_info> &prims_info, int start, in
                 }
 
                 double leaf_cost = prims_count;
-                if (prims_count > max_prims || min_cost < leaf_cost) 
+                if (prims_count > min_prims || min_cost < leaf_cost) 
                 {
                     prim_info *pmid = std::partition(&prims_info[start], &prims_info[end-1]+1, [=](prim_info &pi) 
                     {
