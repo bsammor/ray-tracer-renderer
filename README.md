@@ -56,6 +56,9 @@ To adjust the scene (camera, add spheres/planes, lights), open main.cpp and look
 
 To adjust the acceleration structures parameters, open main.cpp and look for the create_accel_structure() function. There you will find information to change them.
 
+The acceleration structures only work with triangles meshes loaded from the command line. 
+The base ray tracer works with spheres, planes, and triangle meshes loadded from the command line.
+
 The texture coordinates (for mapping) of a model must be between 0 and 1. If a texture uses coordinates outside the range, it will not work properly.
 
 You can use all three extra commands above at the same time (e.g. make run-kd thr="5" models="models/teapot.obj" res="1024x720").
