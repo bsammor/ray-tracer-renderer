@@ -8,8 +8,11 @@
 The ray tracer can be compiled on a linux system or windows ubuntu subsystem.
 
 **Requires Make, libjpeg, and g++*
+
 **sudo apt install make**
+
 **sudo apt install g++**
+
 **sudo apt install libjpeg-dev**
 
 Type "make" in root directory to compile & build
